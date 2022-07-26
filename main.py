@@ -10,6 +10,23 @@ import torch
 # !pip3 install --upgrade tensorflow==2.4
 
 
+# 1. Load Detector
+yolov4 = ObjectDetection("dnn_model/yolov4.weights", "dnn_model/yolov4.cfg")
+yolov4.load_class_names("dnn_model/classes.txt")
+yolov4.load_detection_model(image_size=832,  # 416 - 1280
+                            nmsThreshold=0.4,
+                            confThreshold=0.3)
+# yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+
+
+# 2. Load Tracker (Deepsort)
+deep = Deep(max_distance=0.7,
+            nms_max_overlap=1,
+            n_init=3,
+            max_age=15,
+            max_iou_distance=0.7)
+tracker = deep.sort_tracker()
+
 def detect(model, frame):
     '''Given results from yolov5, extract classs ids, scores and boxes as numpy array'''
 
@@ -32,23 +49,6 @@ def detect(model, frame):
 
     return class_ids, scores, boxes
 
-
-# Load Object Detection
-yolov4 = ObjectDetection("dnn_model/yolov4.weights", "dnn_model/yolov4.cfg")
-yolov4.load_class_names("dnn_model/classes.txt")
-yolov4.load_detection_model(image_size=832,  # 416 - 1280
-                            nmsThreshold=0.4,
-                            confThreshold=0.3)
-# yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-
-
-# Load Object Tracking Deep Sort
-deep = Deep(max_distance=0.7,
-            nms_max_overlap=1,
-            n_init=3,
-            max_age=15,
-            max_iou_distance=0.7)
-tracker = deep.sort_tracker()
 
 
 # capture frame

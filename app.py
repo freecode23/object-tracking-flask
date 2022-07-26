@@ -20,7 +20,7 @@ def generate_frame(camera):
 @app.route("/video")
 def video():
     
-    # return frame to front end
+    # return frame
     return Response(generate_frame(Video()),
     mimetype = 'multipart/x-mixed-replace; boundary=frame')
 

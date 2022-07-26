@@ -1,4 +1,5 @@
 import cv2
+from YoloDeepSort import Tracker
 
 class Video(object):
     def __init__(self):
@@ -11,5 +12,6 @@ class Video(object):
         ret, frame=self.video.read()
         ret, jpg= cv2.imencode(".jpg", frame)
         return jpg.tobytes()
-        
-        
+    
+    
+  
