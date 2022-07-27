@@ -10,6 +10,9 @@ class Video(object):
         
     def get_frame(self):
         ret, frame=self.video.read()
+        if not ret:
+            print("no frame captured")
+            return
         ret, jpg= cv2.imencode(".jpg", frame)
         return jpg.tobytes()
     
