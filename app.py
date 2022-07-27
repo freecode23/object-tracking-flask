@@ -1,4 +1,5 @@
 from flask import Flask, render_template, Response
+from YoloDeepSort import Tracker
 from camera import Video 
 
 app=Flask(__name__)
@@ -10,8 +11,10 @@ def index():
 
 
 def generate_frame(camera):
+    yoloDeepSort = Tracker()
     while True:
-        frame = camera.get_frame()
+        # detect and track
+        frame = camera.get_tracked_frame(yoloDeepSort)
         yield(b'--frame\r\n'
               b'Content-Type:  image/jpeg\r\n\r\n' + frame +
               b'\r\n\r\n')

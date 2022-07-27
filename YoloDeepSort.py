@@ -10,7 +10,7 @@ import torch
 # !pip3 install --upgrade tensorflow==2.4
 
 
-class Tracker():
+class Tracker(object):
     def __init__(self):
         # 1. Load Detector
         self.yolov4 = ObjectDetection(
@@ -113,56 +113,34 @@ class Tracker():
                         (x, y - 10), 0, 0.75, (255, 255, 255), 2)
 
         return frame
-# capture frame
-# cap = cv2.VideoCapture(0)
+    
+    
+    
+def main():
+    # capture frame
+    cap = cv2.VideoCapture(0)
 
-# # create YoloDeepSort tracker
-# yoloDeepSort=Tracker()
+    # create YoloDeepSort tracker
+    yoloDeepSort=Tracker()
 
-# while True:
-#     ret, frame = cap.read()
-#     if not ret:
-#         break
+    while True:
+        # create frame
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        frame = yoloDeepSort.process_frame(frame)
+        
+        # show
+        cv2.imshow("Frame", frame)
 
-#     """ 1. Object Detection per frame"""
-#     # Question : Insert new model but will give error because its running on mps (need nvidia gpu)
-#     # >>>>>>>>>>>>>>>>>>>>>>>>>> yoloV5 >>>>>>>>>>>>>>>>>>
-#     # (class_ids, scores, boxes) = yoloDeepSort.detect_yolov5(frame)
-#     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
 
-#     (class_ids, scores, boxes) = yoloDeepSort.detect_yolov4(frame)
-#     print("class_ids>>>>>>>>>>>>>>", class_ids)
-#     print("scores>>>>>>>>>>>>>>", scores)
-#     print("boxes>>>>>>>>>>>>>>", boxes)
+    cap.release()
+    cv2.destroyAllWindows()
 
-#     """ 2. Object Tracking """
-#     features = yoloDeepSort.deep.encoder(frame, boxes)
-#     detections = yoloDeepSort.deep.Detection(
-#         boxes, scores, class_ids, features)
 
-#     yoloDeepSort.tracker.predict()
-#     (class_ids, object_ids, boxes) = yoloDeepSort.tracker.update(detections)
-#     print("after:class_ids>>>>>>>>>>>>>>", class_ids)
-#     print(type(class_ids))
-#     print("after:boxes>>>>>>>>>>>>>>", boxes)
-
-#     for class_id, object_id, box in zip(class_ids, object_ids, boxes):
-
-#         (x, y, x2, y2) = box
-#         class_name = yoloDeepSort.yolov4.classes[class_id]
-#         color = yoloDeepSort.yolov4.colors[class_id]
-
-#         cv2.rectangle(frame, (x, y), (x2, y2), color, 2)
-#         cv2.rectangle(frame, (x, y), (x + len(class_name)
-#                       * 20, y - 30), color, -1)
-#         cv2.putText(frame, class_name + " " + str(object_id),
-#                     (x, y - 10), 0, 0.75, (255, 255, 255), 2)
-
-#     cv2.imshow("Frame", frame)
-
-#     key = cv2.waitKey(1)
-#     if key == 27:
-#         break
-
-# cap.release()
-# cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()
