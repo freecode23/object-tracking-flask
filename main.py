@@ -66,6 +66,7 @@ while True:
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     (class_ids, scores, boxes) = yolov4.detect(frame)
+    print(yolov4)
     print("class_ids>>>>>>>>>>>>>>", class_ids)
     print("scores>>>>>>>>>>>>>>", scores)
     print("boxes>>>>>>>>>>>>>>", boxes)
