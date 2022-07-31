@@ -11,8 +11,8 @@ class ObjectDetection:
         net = cv2.dnn.readNet(weights_path, cfg_path)
 
         # Enable GPU CUDA
-        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+        # net.setPreferableBackend(cv2.dnn.DNN_BACKEND_)
+        # net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
         self.model = cv2.dnn_DetectionModel(net)
 
         self.classes = []

@@ -2,8 +2,12 @@ import cv2
 import numpy as np
 from object_detection import ObjectDetection
 from deep_sort.deep_sort import Deep
-import torch
-
+import os
+print("import os")
+weight_path=os.path.abspath("dnn_model/yolov4.weights")
+print("finish weight path")
+config_path = os.path.abspath("dnn_model/yolov4.cfg")
+class_path = os.path.abspath("dnn_model/classes.txt")
 # !pip install --upgrade pip
 # !pip install -r requirements.txt
 # !pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
@@ -11,8 +15,8 @@ import torch
 
 
 # 1. Load Detector
-yolov4 = ObjectDetection("dnn_model/yolov4.weights", "dnn_model/yolov4.cfg")
-yolov4.load_class_names("dnn_model/classes.txt")
+yolov4 = ObjectDetection(weight_path, config_path)
+yolov4.load_class_names(class_path)
 yolov4.load_detection_model(image_size=832,  # 416 - 1280
                             nmsThreshold=0.4,
                             confThreshold=0.3)

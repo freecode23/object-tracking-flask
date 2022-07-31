@@ -3,6 +3,7 @@ import numpy as np
 from object_detection import ObjectDetection
 from deep_sort.deep_sort import Deep
 import torch
+import os
 
 # !pip install --upgrade pip
 # !pip install -r requirements.txt
@@ -12,6 +13,7 @@ import torch
 
 class Tracker(object):
     def __init__(self):
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         # 1. Load Detector
         self.yolov4 = ObjectDetection(
             "dnn_model/yolov4.weights", "dnn_model/yolov4.cfg")
@@ -81,8 +83,9 @@ class Tracker(object):
     def process_frame(self, frame):
         """ 1. Object Detection per frame"""
         # Question : Insert new model but will give error because its running on mps (need nvidia gpu)
+        # https://github.com/pytorch/pytorch/issues/77851
         # >>>>>>>>>>>>>>>>>>>>>>>>>> yoloV5 >>>>>>>>>>>>>>>>>>
-        # (class_ids, scores, boxes) = yoloDeepSort.detect_yolov5(frame)
+        # (class_ids, scores, boxes) = self.detect_yolov5(frame)
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         (class_ids, scores, boxes) = self.detect_yolov4(frame)

@@ -27,4 +27,4 @@ def video():
     return Response(generate_frame(Video()),
     mimetype = 'multipart/x-mixed-replace; boundary=frame')
 
-app.run(debug=True)
+app.run(host="0.0.0.0", port=80, debug=True)
