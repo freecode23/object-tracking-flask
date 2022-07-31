@@ -3,6 +3,7 @@ import numpy as np
 from object_detection import ObjectDetection
 from deep_sort.deep_sort import Deep
 import torch
+
 import os
 
 # !pip install --upgrade pip
@@ -12,18 +13,41 @@ import os
 
 
 class Tracker(object):
-    def __init__(self):
+    def __init__(self, version):
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-        # 1. Load Detector
-        self.yolov4 = ObjectDetection(
-            "dnn_model/yolov4.weights", "dnn_model/yolov4.cfg")
-        self.yolov4.load_class_names("dnn_model/classes.txt")
-        self.yolov4.load_detection_model(image_size=832,  # 416 - 1280
-                                         nmsThreshold=0.4,
-                                         confThreshold=0.3)
-        self.yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+        weight_file = ""
+        cfg_file = ""
 
-        # 2. Load Tracker (DeepSORT)
+        # 1. Load yolo
+        if(version == "v7" or version == "v4"):
+            if(version == "v7"):
+                weight = "yolov7-tiny.weights"
+                cfg = "yolov7-tiny.cfg"
+            else:
+                weight = "yolov4-tiny.weights"
+                cfg = "yolov4-tiny.cfg"
+
+            weight_file = os.path.abspath("dnn_model/" + weight)
+            cfg_file = os.path.abspath("dnn_model/" + cfg)
+            self.yolo = ObjectDetection(
+                weight_file, cfg_file)
+
+            self.yolo.load_detection_model(image_size=416,  # 416 - 1280
+                                        nmsThreshold=0.4,
+                                        confThreshold=0.3)
+        
+        else:
+            print("v5455555555555555555555555555555555555555555555555555555555555")
+            # need to do force_reload otherwise will give error because its running on mps (need nvidia gpu)
+            self.yolov5 = torch.hub.load(
+                'ultralytics/yolov5', 'yolov5s', force_reload=True)
+
+        # 2. load Classes
+        self.classes = []
+        self.colors = np.random.uniform(0, 255, size=(80, 3))
+        self.load_class_names("dnn_model/classes.txt")
+        
+        # 3. Load Tracker (DeepSORT)
         self.deep = Deep(max_distance=0.7,
                          nms_max_overlap=1,
                          n_init=3,
@@ -47,13 +71,20 @@ class Tracker(object):
         """Propagate the state distribution to the current time step using a
         Kalman filter prediction step"""
         self.tracker.predict()
+        
+    def load_class_names(self, classes_path):
+        with open(classes_path, "r") as file_object:
+            for class_name in file_object.readlines():
+                class_name = class_name.strip()
+                self.classes.append(class_name)
+        
 
     def detect_yolov5(self, frame):
         """Given results from yolov5, extract classs ids, scores and boxes as numpy array"""
         model = self.yolov5
         results = model(frame)
         result_pandas = results.pandas().xyxy[0]
-        print(result_pandas)
+        print("\n", result_pandas)
         result_list = results.xyxy[0].cpu().detach().tolist()
         class_ids = []
         scores = []
@@ -73,25 +104,28 @@ class Tracker(object):
     def detect_yolov4(self, frame):
         """Detect the object in a given frame using yolov4 model and
         return the class ids, scores and boxes as numpy array"""
-        return self.yolov4.detect(frame)
+        return self.yolo.detect(frame)
 
     def create_detections_object(self, boxes, scores, class_ids, features):
         """Given results from yolov, and features create a detection object to perform Kalman filter measurement update"""
         return self.deep.Detection(
             boxes, scores, class_ids, features)
 
-    def process_frame(self, frame):
+    def process_frame(self, frame, modelVersion):
         """ 1. Object Detection per frame"""
-        # Question : Insert new model but will give error because its running on mps (need nvidia gpu)
-        # https://github.com/pytorch/pytorch/issues/77851
-        # >>>>>>>>>>>>>>>>>>>>>>>>>> yoloV5 >>>>>>>>>>>>>>>>>>
-        # (class_ids, scores, boxes) = self.detect_yolov5(frame)
-        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        print("\ndetecting>>>>>>>>>>>")
+        if(modelVersion == "v4"):
+            (class_ids, scores, boxes) = self.detect_yolov4(frame)
+        else:
+            (class_ids, scores, boxes) = self.detect_yolov5(frame)
 
-        (class_ids, scores, boxes) = self.detect_yolov4(frame)
-        print("class_ids>>>>>>>>>>>>>>", class_ids)
-        print("scores>>>>>>>>>>>>>>", scores)
-        print("boxes>>>>>>>>>>>>>>", boxes)
+        class_names = []
+        for class_id in class_ids:
+            class_name = self.classes[class_id]
+            class_names.append(class_name)
+        print("class_ids: ", class_ids)
+        print("class_names: ", class_names)
+        print("boxes: \n", boxes)
 
         """ 2. Object Tracking """
         features = self.get_features(frame, boxes)
@@ -100,40 +134,46 @@ class Tracker(object):
 
         self.kalman_predict()
         (class_ids, object_ids, boxes) = self.update_features(detections)
-        print("after:class_ids>>>>>>>>>>>>>>", class_ids)
-        print("after:boxes>>>>>>>>>>>>>>", boxes)
+        class_names = []
+        for class_id in class_ids:
+            class_name = self.classes[class_id]
+            class_names.append(class_name)
+        print("\nafter:::::::")
+        print("class_ids: ", class_ids)
+        print("class_names: ", class_names)
+        print("boxes: \n", boxes)
 
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
-
             (x, y, x2, y2) = box
-            class_name = self.yolov4.classes[class_id]
-            color = self.yolov4.colors[class_id]
+            class_name = self.classes[class_id]
+            color = self.colors[class_id]
 
             cv2.rectangle(frame, (x, y), (x2, y2), color, 2)
             cv2.rectangle(frame, (x, y), (x + len(class_name)
                                           * 20, y - 30), color, -1)
             cv2.putText(frame, class_name + " " + str(object_id),
                         (x, y - 10), 0, 0.75, (255, 255, 255), 2)
-
         return frame
-    
-    
-    
+
+
 def main():
+    # device = torch.device("cpu")
+    # os.environ["CUDA_VISIBLE_DEVICES"]=""
+
     # capture frame
     cap = cv2.VideoCapture(0)
 
     # create YoloDeepSort tracker
-    yoloDeepSort=Tracker()
+    yoloDeepSort = Tracker()
 
     while True:
         # create frame
         ret, frame = cap.read()
         if not ret:
             break
-        
+
         frame = yoloDeepSort.process_frame(frame)
-        
+
         # show
         cv2.imshow("Frame", frame)
 
