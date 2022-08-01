@@ -2,6 +2,8 @@ from flask import Flask,  Response, render_template, redirect, url_for, request
 
 from YoloDeepSort import Tracker
 from camera import Video  
+import time
+
 app=Flask(__name__)
 
 # create home route
@@ -17,12 +19,15 @@ def index():
 def generate_frames(camera, version="v4"):
     yoloDeepSort = Tracker(version)
     print("generate frames with version:", version)
+    num_frames = 1
+
     while True:
-        # detect and track
         frame = camera.get_tracked_frame(yoloDeepSort, version)
         yield(b'--frame\r\n'
               b'Content-Type:  image/jpeg\r\n\r\n' + frame +
               b'\r\n\r\n')
+        
+        
 
 # get image from video
 @app.route("/video", methods=['GET', 'POST'])
