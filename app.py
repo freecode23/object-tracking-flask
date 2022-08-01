@@ -1,8 +1,6 @@
 from flask import Flask,  Response, render_template, redirect, url_for, request
-
-from YoloDeepSort import Tracker
-from camera import Video  
-import time
+from object_tracker import Tracker
+from camera import Video 
 
 app=Flask(__name__)
 
@@ -18,8 +16,6 @@ def index():
 
 def generate_frames(camera, version="v4"):
     yoloDeepSort = Tracker(version)
-    print("generate frames with version:", version)
-    num_frames = 1
 
     while True:
         frame = camera.get_tracked_frame(yoloDeepSort, version)

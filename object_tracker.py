@@ -1,16 +1,12 @@
 import cv2
 import numpy as np
-from object_detection import ObjectDetection
+from darknet_model import DarknetModel
 from deep_sort.deep_sort import Deep
 import torch
-
 import os
 
-# !pip install --upgrade pip
 # !pip install -r requirements.txt
 # !pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
-# !pip3 install --upgrade tensorflow==2.4
-
 
 class Tracker(object):
     def __init__(self, version):
@@ -29,7 +25,7 @@ class Tracker(object):
 
             weight_file = os.path.abspath("dnn_model/" + weight)
             cfg_file = os.path.abspath("dnn_model/" + cfg)
-            self.yolo = ObjectDetection(
+            self.yolo = DarknetModel(
                 weight_file, cfg_file)
 
             self.yolo.load_detection_model(image_size=416,  # 416 - 1280
