@@ -1,7 +1,9 @@
 {% extends 'base.html' %}{%block content%}
 <h1>OBJECT TRACKING</h1>
+<h3>I like the animal: {{ value }}<h3>
 <div>
-    <img src="{{url_for('video')}}" width="800" >
+
+    <img src="{{url_for('video', version=value)}}" width="800" >
 <div>
 
 <form method="post" action="/video">

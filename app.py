@@ -1,18 +1,22 @@
-from flask import Flask, render_template, Response, request
-from YoloDeepSort import Tracker
-from camera import Video 
+from flask import Flask,  Response, render_template, redirect, url_for, request
 
+from YoloDeepSort import Tracker
+from camera import Video  
 app=Flask(__name__)
 
 # create home route
 @app.route("/")
 def index():
-    return render_template('index.html')
+    if (request.args.to_dict() == {}):
+        version="v4"
+    else:
+        version = request.args.get("version")
+    return render_template('index.html', value=version)
 
 
 def generate_frames(camera, version="v4"):
     yoloDeepSort = Tracker(version)
-    print("generate frames")
+    print("generate frames with version:", version)
     while True:
         # detect and track
         frame = camera.get_tracked_frame(yoloDeepSort, version)
@@ -30,13 +34,10 @@ def video():
             version = "v5"
         else:
             version="v7"
-            
-        return Response(generate_frames(Video(), version),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-    
+        return redirect(url_for('index', version=version))
+
     elif request.method == 'GET':
-        print("get")
-        return Response(generate_frames(Video()),
+        return Response(generate_frames(Video(), request.args.get("version")),
         mimetype = 'multipart/x-mixed-replace; boundary=frame')
 
 app.run(host="0.0.0.0", port=80, debug=True)

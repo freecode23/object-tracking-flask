@@ -55,6 +55,8 @@ class Tracker(object):
                          max_iou_distance=0.7)
 
         self.tracker = self.deep.sort_tracker()
+        
+        
 
     def get_features(self, frame, boxes):
         """Given BGR color image and a matrix of
@@ -101,7 +103,7 @@ class Tracker(object):
 
         return class_ids, scores, boxes
 
-    def detect_yolov4(self, frame):
+    def detect_yolo(self, frame):
         """Detect the object in a given frame using yolov4 model and
         return the class ids, scores and boxes as numpy array"""
         return self.yolo.detect(frame)
@@ -114,10 +116,10 @@ class Tracker(object):
     def process_frame(self, frame, modelVersion):
         """ 1. Object Detection per frame"""
         print("\ndetecting>>>>>>>>>>>")
-        if(modelVersion == "v4"):
-            (class_ids, scores, boxes) = self.detect_yolov4(frame)
-        else:
+        if(modelVersion == "v5"):
             (class_ids, scores, boxes) = self.detect_yolov5(frame)
+        else:
+            (class_ids, scores, boxes) = self.detect_yolo(frame)
 
         class_names = []
         for class_id in class_ids:

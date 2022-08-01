@@ -8,22 +8,21 @@ class Video(object):
         self.video.release()
         
     def get_frame(self):
-        ret, frame=self.video.read()
-        if not ret:
+        success, frame=self.video.read()
+        if not success:
             print("no frame captured")
             return
         ret, jpg= cv2.imencode(".jpg", frame)
         return jpg.tobytes()
     
     def get_tracked_frame(self, yoloDeepSort, version):
-        ret, frame = self.video.read()
-        if not ret:
+        sucess, frame = self.video.read()
+        if not sucess:
             print("no frame captured")
             return
         
         frame = yoloDeepSort.process_frame(frame, version)
         
-
         # convert result to byte
         ret, jpg = cv2.imencode(".jpg", frame)
         return jpg.tobytes()
