@@ -1,5 +1,5 @@
 from flask import Flask,  Response, render_template, redirect, url_for, request
-from object_tracker import Tracker
+from model.detector_tracker import DetectorTracker
 from camera import Video 
 import time
 import numpy
@@ -64,7 +64,7 @@ def get_mean_stds(ids_scores_all):
 
 def generate_frames(camera, version="v4"):
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
-    yoloDeepSort = Tracker(version)
+    yoloDeepSort = DetectorTracker(version)
 
     ids_scores_all = {}
     start = time.time()
