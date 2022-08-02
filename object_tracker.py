@@ -10,7 +10,7 @@ import os
 
 class Tracker(object):
     def __init__(self, version):
-        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         weight_file = ""
         cfg_file = ""
 
@@ -35,7 +35,7 @@ class Tracker(object):
         else:
             # need to do force_reload otherwise will give error because its running on mps (need nvidia gpu)
             self.yolov5 = torch.hub.load(
-                'ultralytics/yolov5', 'yolov5s', force_reload=True)
+                'ultralytics/yolov5', 'yolov5s')
 
         # 2. load Classes
         self.classes = []
@@ -81,7 +81,6 @@ class Tracker(object):
         model = self.yolov5
         results = model(frame)
         result_pandas = results.pandas().xyxy[0]
-        print("\n", result_pandas)
         result_list = results.xyxy[0].cpu().detach().tolist()
         class_ids = []
         scores = []
@@ -90,7 +89,20 @@ class Tracker(object):
         for i in range(len(result_list)):
             class_ids.append(result_list[i][5])
             scores.append(result_list[i][4])
-            boxes.append(result_list[i][0:4])
+            
+            # get a single bounding box:
+            x = result_list[i][0]
+            y = result_list[i][1]
+            width = result_list[i][2]-result_list[i][0]
+            height = result_list[i][3]-result_list[i][1]
+
+            box=[]
+            box.append(x)
+            box.append(y)
+            box.append(width)
+            box.append(height)
+            boxes.append(box)
+            
 
         class_ids = np.asarray(class_ids, dtype=np.int32)
         scores = np.asarray(scores, dtype=np.float64)
@@ -120,11 +132,11 @@ class Tracker(object):
         for class_id in class_ids:
             class_name = self.classes[class_id]
             class_names.append(class_name)
-        print("class_names: ", class_names)
-        print("scores:", scores)
+
 
         """ 2. Object Tracking """
         features = self.get_features(frame, boxes)
+        
         detections = self.create_detections_object(
             boxes, scores, class_ids, features)
 
@@ -134,9 +146,9 @@ class Tracker(object):
         for class_id in class_ids:
             class_name = self.classes[class_id]
             class_names.append(class_name)
-        print("after:::::::")
-        print("class_names: ", class_names)
-        print("object_ids:", object_ids)
+        
+        # print("class_names: ", class_names)
+        # print("object_ids:", object_ids)
 
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
             (x, y, x2, y2) = box

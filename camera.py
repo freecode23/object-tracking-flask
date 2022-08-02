@@ -4,7 +4,7 @@ class Video(object):
     def __init__(self):
         self.video=cv2.VideoCapture(0)
         self.fps=self.video.get(cv2.CAP_PROP_FPS)
-        # print("Frames per second camera: {0}".format(self.fps))
+
     def __del__(self):
         self.video.release()
         
