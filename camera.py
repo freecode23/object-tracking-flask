@@ -4,7 +4,7 @@ class Video(object):
     def __init__(self):
         self.video=cv2.VideoCapture(0)
         self.fps=self.video.get(cv2.CAP_PROP_FPS)
-        print("Frames per second camera: {0}".format(self.fps))
+        # print("Frames per second camera: {0}".format(self.fps))
     def __del__(self):
         self.video.release()
         
@@ -27,7 +27,7 @@ class Video(object):
         start = time.time()
         
         # 3. process frame
-        frame = yoloDeepSort.process_frame(frame, version)
+        ids_scores, frame = yoloDeepSort.process_frame(frame, version)
         
         # 4. time elapsed
         end = time.time()
@@ -42,4 +42,4 @@ class Video(object):
         
         # convert result to byte
         ret, jpg = cv2.imencode(".jpg", frame)
-        return jpg.tobytes()
+        return ids_scores, jpg.tobytes()

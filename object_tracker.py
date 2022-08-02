@@ -33,7 +33,6 @@ class Tracker(object):
                                         confThreshold=0.3)
         
         else:
-            print("v5455555555555555555555555555555555555555555555555555555555555")
             # need to do force_reload otherwise will give error because its running on mps (need nvidia gpu)
             self.yolov5 = torch.hub.load(
                 'ultralytics/yolov5', 'yolov5s', force_reload=True)
@@ -121,9 +120,8 @@ class Tracker(object):
         for class_id in class_ids:
             class_name = self.classes[class_id]
             class_names.append(class_name)
-        print("class_ids: ", class_ids)
         print("class_names: ", class_names)
-        print("boxes: \n", boxes)
+        print("scores:", scores)
 
         """ 2. Object Tracking """
         features = self.get_features(frame, boxes)
@@ -136,10 +134,9 @@ class Tracker(object):
         for class_id in class_ids:
             class_name = self.classes[class_id]
             class_names.append(class_name)
-        print("\nafter:::::::")
-        print("class_ids: ", class_ids)
+        print("after:::::::")
         print("class_names: ", class_names)
-        print("boxes: \n", boxes)
+        print("object_ids:", object_ids)
 
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
             (x, y, x2, y2) = box
@@ -151,12 +148,24 @@ class Tracker(object):
                                           * 20, y - 30), color, -1)
             cv2.putText(frame, class_name + " " + str(object_id),
                         (x, y - 10), 0, 0.75, (255, 255, 255), 2)
-        return frame
+        
+        # grab ids and scores of each bounding box
+        ids_scores = {}
+        if(len(object_ids) > 0 and len(scores) > 0):
+            
+            # 1. use the length of minimum 
+            if(len(scores) >= len(object_ids)):
+                ids_scores = {object_ids[i]: scores[i]
+                              for i in range(len(object_ids))}
+            if(len(object_ids) > len(scores)):
+                ids_scores = {object_ids[i]: scores[i]
+                              for i in range(len(scores))}
+            
+                
+        return ids_scores, frame
 
 
 def main():
-    # device = torch.device("cpu")
-    # os.environ["CUDA_VISIBLE_DEVICES"]=""
 
     # capture frame
     cap = cv2.VideoCapture(0)

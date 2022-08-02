@@ -18,7 +18,11 @@ def generate_frames(camera, version="v4"):
     yoloDeepSort = Tracker(version)
 
     while True:
-        frame = camera.get_tracked_frame(yoloDeepSort, version)
+        ids_scores_box, frame = camera.get_tracked_frame(yoloDeepSort, version)
+        print(ids_scores_box)
+        
+        for id in ids_scores_box:
+            
         yield(b'--frame\r\n'
               b'Content-Type:  image/jpeg\r\n\r\n' + frame +
               b'\r\n\r\n')
