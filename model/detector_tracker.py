@@ -24,8 +24,8 @@ class DetectorTracker(object):
                 weight = "yolov4-tiny.weights"
                 cfg = "yolov4-tiny.cfg"
 
-            weight_file = os.path.abspath("dnn_model/" + weight)
-            cfg_file = os.path.abspath("dnn_model/" + cfg)
+            weight_file = os.path.abspath("model/weights_configs/" + weight)
+            cfg_file = os.path.abspath("model/weights_configs/" + cfg)
             self.yolo = DarknetModel(
                 weight_file, cfg_file)
 
@@ -41,7 +41,7 @@ class DetectorTracker(object):
         # 2. load Classes
         self.classes = []
         self.colors = np.random.uniform(0, 255, size=(80, 3))
-        self.load_class_names("dnn_model/classes.txt")
+        self.load_class_names("model/weights_configs/classes.txt")
 
         # 3. Load Tracker (DeepSORT)
         self.deep = Deep(max_distance=0.7,

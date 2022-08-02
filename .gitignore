@@ -14,7 +14,8 @@ node_modules/
 *.zip
 .DS_Store  
 .ipynb_checkpoints
-.weights
+*.weights
+*.cfg
 dnn_model/
 .pem
 objectDetectSSH.pem

@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 
-
-class DarknetModel:
+class DarknetModel(object):
     def __init__(self, weights_path, cfg_path):
         self.nmsThreshold = 0.4
         self.confThreshold = 0.5
