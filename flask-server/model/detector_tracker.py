@@ -29,8 +29,7 @@ class DetectorTracker(object):
             self.yolo = DarknetModel(
                 weight_file, cfg_file)
 
-            self.yolo.load_detection_model(image_size=416,  # 416 - 1280
-                                           nmsThreshold=0.4,
+            self.yolo.load_detection_model( nmsThreshold=0.4,
                                            confThreshold=0.3)
 
         else:
@@ -119,7 +118,6 @@ class DetectorTracker(object):
 
     def process_frame(self, frame, modelVersion):
         """ 1. Object Detection per frame"""
-        print("\ndetecting>>>>>>>>>>>")
         if(modelVersion == "v5"):
             (class_ids, scores, boxes) = self.detect_yolov5(frame)
         else:
@@ -178,7 +176,7 @@ def main():
     cap = cv2.VideoCapture(0)
 
     # create YoloDeepSort tracker
-    yoloDeepSort = Tracker("v4")
+    yoloDeepSort = DetectorTracker("v4")
 
     while True:
         # create frame

@@ -1,24 +1,25 @@
-import React, {useEffect, useState} from 'react'
-import axios from "axios";
-function App() {
-  const [data, setData] = useState()
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/home/Home";
 
-  // useEffect(() => {
-  //   const fetchMembers = async () => {
-  //     const fetchedMembers = await axios.get("/video");
-  //     if (fetchedMembers.data) {
-  //       setData(fetchedMembers.data)
-  //       console.log("data>>", fetchedMembers.data);
-  //     }
-  //   };
-  //   fetchMembers();
-  // }, []) 
+function App() {
+  // const [version, setVersion] = useState("v4")
+  // const handleClick = async (e) => {
+  //   e.preventDefault();
+  //   setVersion(e.target.value)
+  
+
   return (
-    <div>
-    <img
-        src="http://localhost:4000/video_feed"
-      alt="Video"
-    /></div>
+    <>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={<div><Home /></div>}
+          />
+        </Routes>
+      </Router>
+    </>
   )
 }
 
