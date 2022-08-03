@@ -1,5 +1,5 @@
 
-from flask import Flask, Response, render_template, redirect, url_for, request
+from flask import Flask, Response, request
 from model.detector_tracker import DetectorTracker
 from camera import Video
 import time

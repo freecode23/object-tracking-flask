@@ -29,7 +29,8 @@ class DetectorTracker(object):
             self.yolo = DarknetModel(
                 weight_file, cfg_file)
 
-            self.yolo.load_detection_model( nmsThreshold=0.4,
+            self.yolo.load_detection_model(image_size=320,  # 416 - 1280
+                                           nmsThreshold=0.4,
                                            confThreshold=0.3)
 
         else:
