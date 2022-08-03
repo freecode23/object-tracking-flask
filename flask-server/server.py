@@ -1,5 +1,5 @@
 
-from flask import Flask, Response, request
+from flask import Flask, Response, make_response, request
 from model.detector_tracker import DetectorTracker
 from camera import Video
 import time
@@ -66,21 +66,27 @@ def generate_frames(camera, version="v4"):
         # push scores
         ids_scores_all = append_scores(ids_scores_all, id_scores_box)
 
+
+        # Question: how to yield standard dev and frame and send it over to react
         yield(b'--frame\r\n'
               b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
               b'\r\n\r\n')
+        
 
         end = time.time()
 
         if(end-start > 3):
-            print("\nAFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             mean_stds = get_mean_stds(ids_scores_all)
             print(mean_stds * 100)
             start = time.time()
+            
+            
 
 
 @app.route('/video_feed/<version>', methods=['GET', 'POST'])
 def video_feed(version):
+    # POST
     if request.method == 'POST':
         if request.form.get('action1') == 'v4':
             version="v4"
@@ -89,12 +95,25 @@ def video_feed(version):
         else:
             version="v7"
         return version
-        
+
+    # GET
     elif request.method == 'GET':
-        return Response(generate_frames(Video(), version),
-                            mimetype='multipart/x-mixed-replace; boundary=frame')
+        vid = Response(generate_frames(Video(), version),
+                       mimetype='multipart/x-mixed-replace; boundary=frame')
+        return vid
+        
+        # for vid1, std in generate_frames(Video(), version):
+        #     print("stanard dev", std)
+        #     print("get vid")
+        #     vid = Response(
+        #         vid1, mimetype='multipart/x-mixed-replace; boundary=frame')
+            # return vid
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=4000, threaded=True, use_reloader=False)
+    # camera can work with HTTP only on 127.0.0.1
+    # for 0.0.0.0 it needs HTTPS so it needs `ssl_context='adhoc'` (and in browser it need to accept untrusted HTTPS
+    #app.run(host='127.0.0.1', port=5000)#, debug=True)
+    app.run(host='0.0.0.0', port=4000, threaded=True,
+            use_reloader=False)
         

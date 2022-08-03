@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import Video from '../../components/video/video';
-import Buttons from '../../components/buttons/buttons';
+import Video from '../../components/video/Video';
+import Buttons from '../../components/buttons/Buttons';
+import Chart from '../../components/chart/Chart';
 function Home() {
 
     const [version, setVersion] = useState("v4")
@@ -15,6 +16,7 @@ function Home() {
                 <h3>{`version used: ${version}`}</h3>
                 <Video version={version}/>
                 <Buttons handleClick={handleClick}/>
+                <Chart />
             </div>
         </>
     )
