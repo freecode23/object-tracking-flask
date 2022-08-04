@@ -1,13 +1,37 @@
 
-from flask import Flask, Response, make_response, request
+from flask import Flask, Response, jsonify, make_response, request
 from model.detector_tracker import DetectorTracker
 from camera import Video
+from datetime import datetime
+
 import sqlite3
 import time
 import numpy
 
-conn = sqlite3.connect("stdev.sqlite")
 app = Flask(__name__)
+conn = sqlite3.connect("stdev.db")
+cursor = conn.cursor()
+sql_create_query = """ CREATE TABLE if not exists stdev (
+    second string PRIMARY KEY,
+    version string NOT NULL,
+    confidence_stdev integer NOT NULL
+)
+"""
+sql_drop_query = """drop table if exists stdev"""
+
+cursor.execute(sql_drop_query)
+cursor.execute(sql_create_query)
+
+
+def db_connection():
+    conn=None
+    try:
+        conn=sqlite3.connect("stdev.db")
+    except sqlite3.error as e:
+        print(e)
+    return conn
+
+
 def append_scores(ids_scores_all, id_score_box):
     '''Look for the id of the box in ids_scores all. If it doesnt exists
     create a new key and add the scores. If it exist, just append the single value. 
@@ -75,9 +99,19 @@ def generate_frames(camera, version="v4"):
         end = time.time()
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            mean_stds = get_mean_stds(ids_scores_all)
-            print(mean_stds * 100)
-            # yield("helllo")
+            mean_stds = get_mean_stds(ids_scores_all) * 100
+            now = datetime.now()
+            now_string = now.strftime("%d/%m %H:%M:%S")
+            
+            # insert into db
+            conn = db_connection()
+            cursor = conn.cursor()
+            sql_query = """INSERT INTO stdev (second, version, confidence_stdev)
+                     VALUES (?, ?, ?)"""
+            cursor = cursor.execute(sql_query, (now_string, version, mean_stds))
+            conn.commit()
+            
+            print("mean stds>>>", mean_stds)
             start = time.time()
             
 @app.route('/video_feed/<version>', methods=['GET', 'POST'])
@@ -103,6 +137,20 @@ def video_feed(version):
         frame_res = Response(gen,
                        mimetype='multipart/x-mixed-replace; boundary=frame')
         return frame_res
+
+@app.route("/stdev")
+def stdev():
+    conn = db_connection()
+    cursor = conn.cursor
+
+    cursor = conn.exectue("SELECT * FROM stdev")
+    stdev = [
+        dict(seconds=row[0], stdev=row[1]) for row in cursor.fetchall()
+    ]
+    
+    if stdev is not None:
+        print("stdev route", stdev)
+        return jsonify(stdev)
 
 if __name__ == '__main__':
     # camera can work with HTTP only on 127.0.0.1
