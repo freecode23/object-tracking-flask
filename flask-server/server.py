@@ -2,12 +2,12 @@
 from flask import Flask, Response, make_response, request
 from model.detector_tracker import DetectorTracker
 from camera import Video
+import sqlite3
 import time
 import numpy
 
+conn = sqlite3.connect("stdev.sqlite")
 app = Flask(__name__)
-
-
 def append_scores(ids_scores_all, id_score_box):
     '''Look for the id of the box in ids_scores all. If it doesnt exists
     create a new key and add the scores. If it exist, just append the single value. 
@@ -66,24 +66,20 @@ def generate_frames(camera, version="v4"):
         # push scores
         ids_scores_all = append_scores(ids_scores_all, id_scores_box)
 
-
         # Question: how to yield standard dev and frame and send it over to react
+        # or save to database
         yield(b'--frame\r\n'
-              b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
-              b'\r\n\r\n')
-        
+                    b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
+                    b'\r\n\r\n')
 
         end = time.time()
-
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             mean_stds = get_mean_stds(ids_scores_all)
             print(mean_stds * 100)
+            # yield("helllo")
             start = time.time()
             
-            
-
-
 @app.route('/video_feed/<version>', methods=['GET', 'POST'])
 def video_feed(version):
     # POST
@@ -98,17 +94,15 @@ def video_feed(version):
 
     # GET
     elif request.method == 'GET':
-        vid = Response(generate_frames(Video(), version),
-                       mimetype='multipart/x-mixed-replace; boundary=frame')
-        return vid
+        # 1. single yield
+        gen = generate_frames(Video(), version)
         
-        # for vid1, std in generate_frames(Video(), version):
-        #     print("stanard dev", std)
-        #     print("get vid")
-        #     vid = Response(
-        #         vid1, mimetype='multipart/x-mixed-replace; boundary=frame')
-            # return vid
-
+        # 2. wrap frame as response object        
+        # multipart/x-mixed-replace is a single HTTP request response model.
+        # If the network is interrupted, the video stream will be terminated abnormally and must be reconnected
+        frame_res = Response(gen,
+                       mimetype='multipart/x-mixed-replace; boundary=frame')
+        return frame_res
 
 if __name__ == '__main__':
     # camera can work with HTTP only on 127.0.0.1
