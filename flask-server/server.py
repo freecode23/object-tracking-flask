@@ -138,19 +138,25 @@ def video_feed(version):
                        mimetype='multipart/x-mixed-replace; boundary=frame')
         return frame_res
 
-@app.route("/stdev")
-def stdev():
-    conn = db_connection()
-    cursor = conn.cursor
 
-    cursor = conn.exectue("SELECT * FROM stdev")
-    stdev = [
-        dict(seconds=row[0], stdev=row[1]) for row in cursor.fetchall()
-    ]
-    
-    if stdev is not None:
-        print("stdev route", stdev)
-        return jsonify(stdev)
+@app.route("/stdev", methods=['GET'])
+def stdev():
+    if request.method == 'GET':
+        # 1. connect to db
+        conn = db_connection()
+        cursor = conn.cursor
+        cursor = conn.execute("SELECT * FROM stdev")
+        stdev= {}
+        stdev["seconds"] = []
+        stdev["conf_stdev"] = []
+
+        # 2. grab standard dev
+        for row in cursor.fetchall():
+            stdev["seconds"].append(row[0])
+            stdev["conf_stdev"].append(row[2])
+        
+        if stdev is not None:
+            return jsonify(stdev)
 
 if __name__ == '__main__':
     # camera can work with HTTP only on 127.0.0.1
