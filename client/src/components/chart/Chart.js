@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import "./chart.css"
 
 // Chart JS
 import {
@@ -32,20 +33,21 @@ function Chart() {
 
   const [time, setTime] = useState([])
   const [stdev, setStdev] = useState([])
-  const labels = ["January", "February", "March", "April", "May", "June", "July"];
-
-  const data = {
+  // const labels = ["January", "February", "March", "April", "May", "June", "July"];
+  const [labels, setLabels] = useState([])
+  const xydata = {
     labels,
     datasets: [
       {
         label: 'Dataset 1',
-        data: [1, 2, 3, 4, 5, 6, 7, 8, 99, 0],
-        borderColor: 'rgb(255, 99, 132)',
+        data: stdev,
+        borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
       }
     ],
   };
 
+  // const [xydata, setXyData] = useState({})
 
   useEffect(()=> {
     const myInterval = setInterval(fetchConfidences, 5000);
@@ -63,15 +65,35 @@ function Chart() {
     console.log("fethced Conf", fetchedConf.data.conf_stdev);
     setTime(fetchedConf.data.seconds)
     setStdev(fetchedConf.data.conf_stdev)
+
+    // X axis
+    setTime(fetchedConf.data.seconds)
+    setLabels(fetchedConf.data.seconds)
+    // setXyData({
+    //   labels,
+    //   datasets: [
+    //     {
+    //       label: 'Dataset 1',
+    //       data: stdev,
+    //       borderColor: 'rgb(255, 99, 132)',
+    //       backgroundColor: 'rgba(255, 99, 132, 0.5)',
+    //     }
+    //   ],
+    // })
+
+
   }
 
 
 
   return (
     <>
+
       <div>{`${time}`}</div>
       <div>{`${stdev}`}</div>
-      <Line data={data} />
+      <div className='chart-wrapper'>
+        <Line data={xydata} />
+      </div>
     </>
   )
 }
