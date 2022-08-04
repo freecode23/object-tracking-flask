@@ -1,10 +1,51 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 
-function Charts() {
+// Chart JS
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
-  const [time, setTime]=useState()
-  const [stdev, setStdev]=useState()
+export const options = {
+  responsive: true,
+};
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+function Chart() {
+
+  const [time, setTime] = useState([])
+  const [stdev, setStdev] = useState([])
+  const labels = ["January", "February", "March", "April", "May", "June", "July"];
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: 'Dataset 1',
+        data: [1, 2, 3, 4, 5, 6, 7, 8, 99, 0],
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      }
+    ],
+  };
+
 
   useEffect(()=> {
     const myInterval = setInterval(fetchConfidences, 5000);
@@ -24,12 +65,16 @@ function Charts() {
     setStdev(fetchedConf.data.conf_stdev)
   }
 
+
+
   return (
     <>
       <div>{`${time}`}</div>
       <div>{`${stdev}`}</div>
+      <Line data={data} />
     </>
   )
 }
 
-export default Charts
+
+export default Chart;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Video from '../../components/video/Video';
 import Buttons from '../../components/buttons/Buttons';
+// import {ChartF} from '../../components/chart/ChartF';
 import Chart from '../../components/chart/Chart';
 function Home() {
 
