@@ -1,0 +1,24 @@
+.homeWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Space Grotesk";
+}
+
+.homeTitle {
+    margin-bottom: 0px;
+}
+
+.homeSelectVersion {
+    margin-bottom: 30px;
+    font-family: "Open Sans";
+    font-weight: 100;
+}
+
+.homeContent {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}

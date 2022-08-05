@@ -7,7 +7,7 @@ function Video(props) {
             <img
                 src={`http://localhost:4000/video_feed/${props.version}`}
                 alt="Video"
-                width="700"
+                width="700px"
             />
         </div>
     )
