@@ -139,12 +139,18 @@ def video_feed(version):
         return frame_res
 
 
-@app.route("/stdev", methods=['GET'])
-def stdev():
+@app.route("/stdev/<isResetTable>", methods=['GET'])
+def stdev(isResetTable):
+
     if request.method == 'GET':
         # 1. connect to db
         conn = db_connection()
-        cursor = conn.cursor
+        cursor = conn.cursor()
+        if(isResetTable == "true"):
+            print("isResetTable", isResetTable)
+            sql_delete_all_query = "DELETE FROM stdev;"
+            cursor.execute(sql_delete_all_query)
+            
         cursor = conn.execute("SELECT * FROM stdev")
         stdev= {}
         stdev["seconds"] = []

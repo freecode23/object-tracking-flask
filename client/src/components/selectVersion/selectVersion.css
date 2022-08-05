@@ -8,8 +8,8 @@
     margin-left: 16px;
     cursor: pointer;
     font-family: "Space Grotesk";
-    border-radius: 10px;
     border: 1px solid white;
+    border-radius: 10px;
 }
 
 .versionButton:hover {
@@ -21,7 +21,6 @@
 
 .v4 {
     color: white;
-    /* border: none; */
     background-color: rgb(250, 0, 0);
 }
 

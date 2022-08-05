@@ -29,7 +29,7 @@ ChartJS.register(
   Legend
 );
 
-function Chart() {
+function Chart(props) {
 
   const [labels, setLabels] = useState([]) // x time
   const [stdev, setStdev] = useState([]) // y axis
@@ -46,6 +46,8 @@ function Chart() {
     }
   }
 
+
+
   // plot
   const xydata = {
     labels,
@@ -55,7 +57,6 @@ function Chart() {
         data: stdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
         segment: {
-          // borderColor: ctx => v4(ctx, 'rgb(250, 0, 0)') || v5(ctx, 'rgb(250, 9, 9)')
           borderColor: ctx => getColorAtx(ctx)
         }
       },
@@ -71,25 +72,32 @@ function Chart() {
       clearInterval(myInterval);
     };
 
-  }, [])
+  })
 
   const fetchConfidences = async () => {
-    const fetchedConf = await axios.get("/stdev")
+    const fetchedConf = await axios.get(`/stdev/${props.isResetChart}`)
+    console.log("is reset chart", props.isResetChart);
+
     // X axis - time
     setLabels(fetchedConf.data.seconds)
-    
+
     // Y axis -stdev
     setStdev(fetchedConf.data.conf_stdev)
-    
+
     // set version
     setVersions(fetchedConf.data.versions)
+    
   }
 
 
 
   return (
     <>
-      {/* <div>{`${stdev}`}</div> */}
+      <button
+        onClick={props.handleResetChart}>
+        Reset Chart
+      </button>
+      
       <div className='chart-wrapper'>
         <Line data={xydata} />
       </div>

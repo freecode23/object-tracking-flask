@@ -1,15 +1,24 @@
 import React, { useState } from 'react'
 import Video from '../../components/video/Video';
-import Buttons from '../../components/selectVersion/SelectVersion';
+import SelectVersion from '../../components/selectVersion/SelectVersion';
 import Chart from '../../components/chart/Chart';
 import "./home.css"
 function Home() {
 
     const [version, setVersion] = useState("v4")
-    const handleClick = async (e) => {
+    const [isResetChart, setResetChart] = useState(false)
+
+    const handleSelectVersion = async (e) => {
         e.preventDefault();
         setVersion(e.target.value)
     }
+
+    const handleResetChart = async (e) => {
+        e.preventDefault();
+        setResetChart(true)
+    }
+
+
     return (
         <>
             <div className="homeWrapper">
@@ -19,12 +28,15 @@ function Home() {
                     <h3>
                         {`YOLO version used: ${version}`}
                     </h3>
-                    <Buttons handleClick={handleClick} />
+                    <SelectVersion handleClick={handleSelectVersion} />
                 </div>
+                
                 
                 <div className='homeContent'>
                     <Video version={version} />
-                    <Chart />
+                    <Chart
+                    isResetChart={isResetChart}
+                    handleResetChart={handleResetChart} />
                 </div>
             </div>
         </>
