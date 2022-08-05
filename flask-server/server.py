@@ -148,15 +148,18 @@ def stdev():
         cursor = conn.execute("SELECT * FROM stdev")
         stdev= {}
         stdev["seconds"] = []
-        stdev["version"] = []
         stdev["conf_stdev"] = []
+        stdev["versions"] = []
+        # stdev["version"] = ""
 
         # 2. grab standard dev
-        for row in cursor.fetchall():
-            stdev["seconds"].append(row[0])
-            stdev["version"].append(row[1])
-            stdev["conf_stdev"].append(row[2])
-        
+        # for each col
+        for col in cursor.fetchall():
+            stdev["seconds"].append(col[0])
+            stdev["versions"].append(col[1])
+            stdev["conf_stdev"].append(col[2])
+            
+        # stdev["version"] = col[1]
         if stdev is not None:
             return jsonify(stdev)
 

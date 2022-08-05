@@ -31,22 +31,37 @@ ChartJS.register(
 
 function Chart() {
 
-  const [time, setTime] = useState([])
-  const [stdev, setStdev] = useState([])
-  const [labels, setLabels] = useState([])
+  const [labels, setLabels] = useState([]) // x time
+  const [stdev, setStdev] = useState([]) // y axis
+  const [versions, setVersions] = useState()
+  
+  const getColorAtx = (ctx) => {
+    const rowIdx = ctx.p0.parsed.x
+    if (versions[rowIdx] === "v4") {
+      return 'rgb(250, 0, 0)'
+    } else if (versions[rowIdx] === "v5") {
+      return 'rgb(0, 255, 0)'
+    } else {
+      return 'rgb(0, 0, 255)'
+    }
+  }
+
+  // plot
   const xydata = {
     labels,
     datasets: [
       {
-        label: 'Dataset 1',
+        label: 'Confidence Standard Deviation',
         data: stdev,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      }
+        backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
+        segment: {
+          // borderColor: ctx => v4(ctx, 'rgb(250, 0, 0)') || v5(ctx, 'rgb(250, 9, 9)')
+          borderColor: ctx => getColorAtx(ctx)
+        }
+      },
     ],
   };
 
-  // const [xydata, setXyData] = useState({})
 
   useEffect(()=> {
     const myInterval = setInterval(fetchConfidences, 3000);
@@ -60,24 +75,21 @@ function Chart() {
 
   const fetchConfidences = async () => {
     const fetchedConf = await axios.get("/stdev")
-    console.log("fethced seconds", fetchedConf.data.seconds);
-    console.log("fethced Conf", fetchedConf.data.conf_stdev);
     // X axis - time
     setLabels(fetchedConf.data.seconds)
-
+    
     // Y axis -stdev
     setStdev(fetchedConf.data.conf_stdev)
-
-    // border color - depends on version
-
-
+    
+    // set version
+    setVersions(fetchedConf.data.versions)
   }
 
 
 
   return (
     <>
-      <div>{`${stdev}`}</div>
+      {/* <div>{`${stdev}`}</div> */}
       <div className='chart-wrapper'>
         <Line data={xydata} />
       </div>
