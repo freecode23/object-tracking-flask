@@ -99,7 +99,7 @@ def generate_frames(camera, version="v4"):
         end = time.time()
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            mean_stds = get_mean_stds(ids_scores_all) * 100
+            mean_stds = round(get_mean_stds(ids_scores_all) * 100, 3)
             now = datetime.now()
             now_string = now.strftime("%d/%m %H:%M:%S")
             
@@ -148,11 +148,13 @@ def stdev():
         cursor = conn.execute("SELECT * FROM stdev")
         stdev= {}
         stdev["seconds"] = []
+        stdev["version"] = []
         stdev["conf_stdev"] = []
 
         # 2. grab standard dev
         for row in cursor.fetchall():
             stdev["seconds"].append(row[0])
+            stdev["version"].append(row[1])
             stdev["conf_stdev"].append(row[2])
         
         if stdev is not None:

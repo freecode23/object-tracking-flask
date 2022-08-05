@@ -33,7 +33,6 @@ function Chart() {
 
   const [time, setTime] = useState([])
   const [stdev, setStdev] = useState([])
-  // const labels = ["January", "February", "March", "April", "May", "June", "July"];
   const [labels, setLabels] = useState([])
   const xydata = {
     labels,
@@ -50,7 +49,7 @@ function Chart() {
   // const [xydata, setXyData] = useState({})
 
   useEffect(()=> {
-    const myInterval = setInterval(fetchConfidences, 5000);
+    const myInterval = setInterval(fetchConfidences, 3000);
 
     return () => {
       // should clear the interval when the component unmounts
@@ -63,23 +62,13 @@ function Chart() {
     const fetchedConf = await axios.get("/stdev")
     console.log("fethced seconds", fetchedConf.data.seconds);
     console.log("fethced Conf", fetchedConf.data.conf_stdev);
-    setTime(fetchedConf.data.seconds)
+    // X axis - time
+    setLabels(fetchedConf.data.seconds)
+
+    // Y axis -stdev
     setStdev(fetchedConf.data.conf_stdev)
 
-    // X axis
-    setTime(fetchedConf.data.seconds)
-    setLabels(fetchedConf.data.seconds)
-    // setXyData({
-    //   labels,
-    //   datasets: [
-    //     {
-    //       label: 'Dataset 1',
-    //       data: stdev,
-    //       borderColor: 'rgb(255, 99, 132)',
-    //       backgroundColor: 'rgba(255, 99, 132, 0.5)',
-    //     }
-    //   ],
-    // })
+    // border color - depends on version
 
 
   }
@@ -88,8 +77,6 @@ function Chart() {
 
   return (
     <>
-
-      <div>{`${time}`}</div>
       <div>{`${stdev}`}</div>
       <div className='chart-wrapper'>
         <Line data={xydata} />
