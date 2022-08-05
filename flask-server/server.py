@@ -101,7 +101,7 @@ def generate_frames(camera, version="v4"):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             mean_stds = round(get_mean_stds(ids_scores_all) * 100, 3)
             now = datetime.now()
-            now_string = now.strftime("%d/%m %H:%M:%S")
+            now_string = now.strftime("%H:%M:%S")
             
             # insert into db
             conn = db_connection()
@@ -146,26 +146,24 @@ def stdev(isResetTable):
         # 1. connect to db
         conn = db_connection()
         cursor = conn.cursor()
+        stdev= {}
         if(isResetTable == "true"):
-            print("isResetTable", isResetTable)
             sql_delete_all_query = "DELETE FROM stdev;"
             cursor.execute(sql_delete_all_query)
-            
-        cursor = conn.execute("SELECT * FROM stdev")
-        stdev= {}
-        stdev["seconds"] = []
-        stdev["conf_stdev"] = []
-        stdev["versions"] = []
-        # stdev["version"] = ""
+            conn.commit()
+        else :
+            cursor = conn.execute("SELECT * FROM stdev")
+            stdev["seconds"] = []
+            stdev["conf_stdev"] = []
+            stdev["versions"] = []
 
-        # 2. grab standard dev
-        # for each col
-        for col in cursor.fetchall():
-            stdev["seconds"].append(col[0])
-            stdev["versions"].append(col[1])
-            stdev["conf_stdev"].append(col[2])
+            # 2. grab standard dev
+            # for each col
+            for col in cursor.fetchall():
+                stdev["seconds"].append(col[0])
+                stdev["versions"].append(col[1])
+                stdev["conf_stdev"].append(col[2])
             
-        # stdev["version"] = col[1]
         if stdev is not None:
             return jsonify(stdev)
 

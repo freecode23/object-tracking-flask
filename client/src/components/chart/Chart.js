@@ -75,8 +75,7 @@ function Chart(props) {
   })
 
   const fetchConfidences = async () => {
-    const fetchedConf = await axios.get(`/stdev/${props.isResetChart}`)
-    console.log("is reset chart", props.isResetChart);
+    const fetchedConf = await axios.get(`/stdev/${props.isClearChart}`)
 
     // X axis - time
     setLabels(fetchedConf.data.seconds)
@@ -93,14 +92,17 @@ function Chart(props) {
 
   return (
     <>
+      <div className='chartWrapper'>
       <button
-        onClick={props.handleResetChart}>
-        Reset Chart
+          className='chartClearButton'
+          onClick={props.handleClearChart}>
+            Clear Chart
       </button>
-      
-      <div className='chart-wrapper'>
+
+      <div>
         <Line data={xydata} />
       </div>
+    </div>
     </>
   )
 }

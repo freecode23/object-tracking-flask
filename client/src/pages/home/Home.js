@@ -6,16 +6,17 @@ import "./home.css"
 function Home() {
 
     const [version, setVersion] = useState("v4")
-    const [isResetChart, setResetChart] = useState(false)
+    const [isClearChart, setClearChart] = useState(false)
 
     const handleSelectVersion = async (e) => {
         e.preventDefault();
         setVersion(e.target.value)
+        setClearChart(false)
     }
 
-    const handleResetChart = async (e) => {
+    const handleClearChart = async (e) => {
         e.preventDefault();
-        setResetChart(true)
+        setClearChart(true)
     }
 
 
@@ -28,15 +29,15 @@ function Home() {
                     <h3>
                         {`YOLO version used: ${version}`}
                     </h3>
-                    <SelectVersion handleClick={handleSelectVersion} />
+                    <SelectVersion handleSelectVersion={handleSelectVersion} />
                 </div>
                 
                 
                 <div className='homeContent'>
                     <Video version={version} />
                     <Chart
-                    isResetChart={isResetChart}
-                    handleResetChart={handleResetChart} />
+                    isClearChart={isClearChart}
+                    handleClearChart={handleClearChart} />
                 </div>
             </div>
         </>
