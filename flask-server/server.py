@@ -113,41 +113,48 @@ def generate_frames(camera, version="v4"):
     ids_scores_all_frames = {}
     start = time.time()
     while True:
-        # get first frame
+        # 1. get first frame
         ids_scores_sizes, curr_frame = camera.get_tracked_frame(
             yoloDeepSort, version)
 
-        # push scores
+        # 2. push scores
         ids_scores_all_frames = append_scores(
             ids_scores_all_frames, ids_scores_sizes)
 
-        # Question: how to yield standard dev and frame and send it over to react
-        # or save to database
+        # 3. return the frame
         yield(b'--frame\r\n'
                     b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
                     b'\r\n\r\n')
 
         end = time.time()
+        
+        # 4. get std if its been 3 seconds
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            # 5. get the stdev
             mean_conf_stds, mean_size_stds = get_mean_stds(ids_scores_all_frames)
             mean_conf_stds, mean_size_stds = round(
                 mean_conf_stds * 100, 3), round(mean_size_stds, 3)
-            now = datetime.now()
-            now_string = now.strftime("%H:%M:%S")
-            
-            # insert into db
-            conn = db_connection()
-            cursor = conn.cursor()
-            sql_query = """INSERT INTO stdev 
-                        (second, version, confidence_stdev, size_stdev)
-                        VALUES (?, ?, ?, ?)"""
-            cursor = cursor.execute(
-                sql_query, (now_string, version, mean_conf_stds, mean_size_stds))
-            conn.commit()
-            
             print("mean conf stds>>>", mean_conf_stds)
             print("mean size stds>>>", mean_size_stds)
+            
+            # 6. if its a valid stdevs, insert into db
+            if(mean_conf_stds > 0 or mean_size_stds > 0):
+                # 7. prep the dates
+                now = datetime.now()
+                now_string = now.strftime("%H:%M:%S")
+                
+                # 8. insert into db
+                conn = db_connection()
+                cursor = conn.cursor()
+                sql_query = """INSERT INTO stdev 
+                            (second, version, confidence_stdev, size_stdev)
+                            VALUES (?, ?, ?, ?)"""
+                cursor = cursor.execute(
+                    sql_query, (now_string, version, mean_conf_stds, mean_size_stds))
+                conn.commit()
+                
+            # 9. restart timer from 0s
             start = time.time()
             
 @app.route('/video_feed/<version>', methods=['GET', 'POST'])

@@ -33,7 +33,8 @@ ChartJS.register(
 function Chart(props) {
 
   const [labels, setLabels] = useState([]) // x time
-  const [stdev, setStdev] = useState([]) // y axis
+  const [confStdev, setConf] = useState([]) // y axis
+  const [sizeStdev, setSize] = useState([]) // y axis
   const [versions, setVersions] = useState()
   
   const getColorAtx = (ctx) => {
@@ -50,12 +51,26 @@ function Chart(props) {
 
 
   // plot
-  const xydata = {
+  const ConfData = {
     labels,
     datasets: [
       {
-        label: 'Confidence Standard Deviation',
-        data: stdev,
+        label: 'Confidence Standard Deviation(%)',
+        data: confStdev,
+        backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
+        segment: {
+          borderColor: ctx => getColorAtx(ctx)
+        }
+      },
+    ],
+  };
+
+  const SizeData = {
+    labels,
+    datasets: [
+      {
+        label: 'Size Standard Deviation (pixel)',
+        data: sizeStdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
         segment: {
           borderColor: ctx => getColorAtx(ctx)
@@ -66,7 +81,7 @@ function Chart(props) {
 
 
   useEffect(()=> {
-    const myInterval = setInterval(fetchConfidences, 3000);
+    const myInterval = setInterval(fetchConfStdev, 3000);
 
     return () => {
       // should clear the interval when the component unmounts
@@ -75,14 +90,16 @@ function Chart(props) {
 
   })
 
-  const fetchConfidences = async () => {
+  const fetchConfStdev = async () => {
     const fetchedConf = await axios.get(`/stdev/${props.isClearChart}`)
 
     // X axis - time
     setLabels(fetchedConf.data.seconds)
 
-    // Y axis -stdev
-    setStdev(fetchedConf.data.conf_stdev)
+  
+    // Y axis -confStdev
+    setConf(fetchedConf.data.conf_stdev)
+    setSize(fetchedConf.data.size_stdev)
 
     // set version
     setVersions(fetchedConf.data.versions)
@@ -101,7 +118,10 @@ function Chart(props) {
       </button>
 
       <div>
-        <Line data={xydata} />
+        <Line data={ConfData} />
+      </div>
+      <div>
+          <Line data={SizeData} />
       </div>
     </div>
     </>
