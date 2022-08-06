@@ -142,9 +142,17 @@ class DetectorTracker(object):
             class_name = self.classes[class_id]
             class_names.append(class_name)
 
-        # print("class_names: ", class_names)
-        # print("object_ids:", object_ids)
-
+        
+        # get bounding box size in eaxh box
+        box_sizes=[]
+        for box in boxes:
+            box_size= box[2] * box[3]
+            box_sizes.append(box_size)
+            
+        # print("\nclass_names: ", class_names)
+        # print("box_sizes:", box_sizes)
+        # print("scores:", scores)
+            
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
             (x, y, x2, y2) = box
             class_name = self.classes[class_id]
@@ -158,17 +166,35 @@ class DetectorTracker(object):
 
         # grab ids and scores of each bounding box
         ids_scores = {}
+        ids_scores_sizes ={}
         if(len(object_ids) > 0 and len(scores) > 0):
 
             # 1. use the length of minimum
             if(len(scores) >= len(object_ids)):
                 ids_scores = {object_ids[i]: scores[i]
                               for i in range(len(object_ids))}
+
+
+                # get ids, scores, and sizes depending on length of object_id
+                for i in range(len(object_ids)):
+                    ids_scores_sizes[object_ids[i]] = {
+                        "score": scores[i],
+                        "size": box_sizes[i]}
+                    
+                
             if(len(object_ids) > len(scores)):
                 ids_scores = {object_ids[i]: scores[i]
                               for i in range(len(scores))}
 
-        return ids_scores, frame
+                # get ids, scores, and sizes depending on length of scores
+                for i in range(len(scores)):
+                    ids_scores_sizes[object_ids[i]] = {
+                                        "score": scores[i],
+                                        "size": box_sizes[i]
+                                        }
+
+        # print("ids_scores_sizes:", ids_scores_sizes)
+        return ids_scores_sizes, frame
 
 
 def main():

@@ -27,7 +27,8 @@ class Video(object):
         start = time.time()
         
         # 3. process frame
-        ids_scores, frame = yoloDeepSort.process_frame(frame, version)
+        ids_scores_sizes, frame = yoloDeepSort.process_frame(
+            frame, version)
         
         # 4. time elapsed
         end = time.time()
@@ -42,4 +43,4 @@ class Video(object):
         
         # convert result to byte
         ret, jpg = cv2.imencode(".jpg", frame)
-        return ids_scores, jpg.tobytes()
+        return ids_scores_sizes, jpg.tobytes()

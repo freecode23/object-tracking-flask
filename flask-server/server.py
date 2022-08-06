@@ -14,7 +14,8 @@ cursor = conn.cursor()
 sql_create_query = """ CREATE TABLE if not exists stdev (
     second string PRIMARY KEY,
     version string NOT NULL,
-    confidence_stdev integer NOT NULL
+    confidence_stdev integer NOT NULL,
+    size_stdev integer NOT NULL
 )
 """
 sql_drop_query = """drop table if exists stdev"""
@@ -32,17 +33,32 @@ def db_connection():
     return conn
 
 
-def append_scores(ids_scores_all, id_score_box):
+def append_scores(ids_scores_sizes_all, ids_scores_sizes):
     '''Look for the id of the box in ids_scores all. If it doesnt exists
     create a new key and add the scores. If it exist, just append the single value. 
     Return the new dict with scores appended'''
-    if(id_score_box):
-        for id, score in id_score_box.items():
-            if(id in ids_scores_all):
-                ids_scores_all[id].append(score)
+    # if(ids_scores):
+    #     for id, score in ids_scores.items():
+    #         # if id already exist, just append
+    #         if(id in ids_scores_all):
+    #             ids_scores_all[id].append(score)
+    #         else:
+    #             ids_scores_all[id] = [score]
+                
+    if(ids_scores_sizes):
+        for id, scores_sizes in ids_scores_sizes.items():
+            score = scores_sizes['score']
+            size = scores_sizes['size']
+            
+            # if id already exist, just append
+            if(id in ids_scores_sizes_all):
+                ids_scores_sizes_all[id]["scores"].append(score)
+                ids_scores_sizes_all[id]["sizes"].append(size)
             else:
-                ids_scores_all[id] = [score]
-    return ids_scores_all
+                ids_scores_sizes_all[id] = {"scores" : [score],
+                                            "sizes": [size]}
+                
+    return ids_scores_sizes_all
 
 
 def get_error_list(scores):
@@ -55,40 +71,55 @@ def get_error_list(scores):
 
     return errors
 
-def get_mean_stds(ids_scores_all):
-    '''For each box id, get error scores between 2 frames and add to a list.
+
+def get_mean_stds(ids_scores_sizes_all):
+    '''For each box id, get error of scores and of sizes between 2 frames and add to a list.
     Return a dict of object id and error list'''
-    stds = []
-    if(len(ids_scores_all) != 0):
-        for id, scores in ids_scores_all.items():
+    conf_stds = []
+    size_stds = []
+    if(len(ids_scores_sizes_all) != 0):
+        for id, scores_sizes in ids_scores_sizes_all.items():
+            scores = scores_sizes["scores"]
+            sizes = scores_sizes["sizes"]
+            
             # loop through the scores and get error by id
-            errors = get_error_list(scores)
+            score_errors = get_error_list(scores)
+            size_errors = get_error_list(sizes)
 
             # if there is error element, get standard deviation
-            if(errors):
-                arr = numpy.array(errors)
-                std = numpy.std(arr, axis=0)
-                stds.append(std)
+            if(score_errors):
+                conf_arr = numpy.array(score_errors)
+                conf_std = numpy.std(conf_arr, axis=0)
+                conf_stds.append(conf_std)
+                
+                size_arr = numpy.array(size_errors)
+                size_std = numpy.std(size_arr, axis=0)
+                size_stds.append(size_std)
+                
 
-    if(stds):
-        return sum(stds) / len(stds)
+    if(conf_stds):
+        mean_conf_stds = (sum(conf_stds) / len(conf_stds))
+        mean_size_stds = (sum(size_stds) / len(size_stds))
+        return mean_conf_stds, mean_size_stds
+    
     else:
-        return -1
+        return -1, -1
 
 def generate_frames(camera, version="v4"):
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
     print('tracker_version' , version)
     yoloDeepSort = DetectorTracker(version)
 
-    ids_scores_all = {}
+    ids_scores_all_frames = {}
     start = time.time()
     while True:
         # get first frame
-        id_scores_box, curr_frame = camera.get_tracked_frame(
+        ids_scores_sizes, curr_frame = camera.get_tracked_frame(
             yoloDeepSort, version)
 
         # push scores
-        ids_scores_all = append_scores(ids_scores_all, id_scores_box)
+        ids_scores_all_frames = append_scores(
+            ids_scores_all_frames, ids_scores_sizes)
 
         # Question: how to yield standard dev and frame and send it over to react
         # or save to database
@@ -99,19 +130,24 @@ def generate_frames(camera, version="v4"):
         end = time.time()
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            mean_stds = round(get_mean_stds(ids_scores_all) * 100, 3)
+            mean_conf_stds, mean_size_stds = get_mean_stds(ids_scores_all_frames)
+            mean_conf_stds, mean_size_stds = round(
+                mean_conf_stds * 100, 3), round(mean_size_stds, 3)
             now = datetime.now()
             now_string = now.strftime("%H:%M:%S")
             
             # insert into db
             conn = db_connection()
             cursor = conn.cursor()
-            sql_query = """INSERT INTO stdev (second, version, confidence_stdev)
-                     VALUES (?, ?, ?)"""
-            cursor = cursor.execute(sql_query, (now_string, version, mean_stds))
+            sql_query = """INSERT INTO stdev 
+                        (second, version, confidence_stdev, size_stdev)
+                        VALUES (?, ?, ?, ?)"""
+            cursor = cursor.execute(
+                sql_query, (now_string, version, mean_conf_stds, mean_size_stds))
             conn.commit()
             
-            print("mean stds>>>", mean_stds)
+            print("mean conf stds>>>", mean_conf_stds)
+            print("mean size stds>>>", mean_size_stds)
             start = time.time()
             
 @app.route('/video_feed/<version>', methods=['GET', 'POST'])
@@ -155,14 +191,16 @@ def stdev(isResetTable):
             cursor = conn.execute("SELECT * FROM stdev")
             stdev["seconds"] = []
             stdev["conf_stdev"] = []
+            stdev["size_stdev"] = []
             stdev["versions"] = []
-
+            
             # 2. grab standard dev
             # for each col
             for col in cursor.fetchall():
                 stdev["seconds"].append(col[0])
                 stdev["versions"].append(col[1])
                 stdev["conf_stdev"].append(col[2])
+                stdev["size_stdev"].append(col[3])
             
         if stdev is not None:
             return jsonify(stdev)
