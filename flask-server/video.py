@@ -2,7 +2,6 @@ import cv2
 import time
 class Video(object):
     def __init__(self, isWebcam):
-        print("INIT >>>>>>>>>>> ,<<<<<VIDEOOO::::",isWebcam)
         if(isWebcam):
             self.video=cv2.VideoCapture(0)
         else:

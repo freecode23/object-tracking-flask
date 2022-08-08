@@ -3,7 +3,9 @@ import numpy as np
 from darknet_model import DarknetModel
 from deep_sort.deep_sort import Deep
 import torch
+import torchvision
 import os
+import torchvision.transforms as T
 
 # !pip install -r requirements.txt
 # !pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
@@ -14,7 +16,8 @@ class DetectorTracker(object):
         # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         weight_file = ""
         cfg_file = ""
-
+        self.frcnn = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+            pretrained=True)
         # 1. Load yolo
         if(version == "v7" or version == "v4"):
             if(version == "v7"):
@@ -32,6 +35,9 @@ class DetectorTracker(object):
             self.yolo.load_detection_model(image_size=320,  # 416 - 1280
                                            nmsThreshold=0.4,
                                            confThreshold=0.3)
+            
+
+
 
         else:
             # need to do force_reload otherwise will give error because its running on mps (need nvidia gpu)
@@ -74,14 +80,77 @@ class DetectorTracker(object):
                 class_name = class_name.strip()
                 self.classes.append(class_name)
 
+    def get_prediction(self, frame):
+        """
+        get_prediction
+
+            
+        """
+    def detect_frcnn(self, frame):
+        #FRCNN
+        # transform the image to tensor
+        transform = T.Compose([
+            T.ToTensor(),
+        ])
+        image = transform(frame)
+        image = image.unsqueeze(0)  # add a batch dimension
+        self.frcnn.eval()
+        outputs = self.frcnn(image)  # get the predictions on the image
+        # print the results individually
+        # print(f"BOXES: {outputs[0]['boxes']}")
+        # print(f"LABELS: {outputs[0]['labels']}")
+        # print(f"SCORES: {outputs[0]['scores']}")
+        # get all the predicited class names
+        pred_class_ids = [class_id
+                        for class_id in outputs[0]['labels'].cpu().numpy()]
+        
+        # get score for all the predicted objects
+        pred_scores = outputs[0]['scores'].detach().cpu().numpy()
+
+        # get all the predicted bounding boxes
+        pred_bboxes = outputs[0]['boxes'].detach().cpu().numpy()
+
+        # 1. get class ids
+        class_ids=[]
+        for i in range(len(pred_scores)):
+            if(pred_scores[i] >= 0.3):
+                class_ids.append(pred_class_ids[i])
+        
+        # 2. get scores
+        scores = pred_scores[pred_scores >=
+                            0.3]
+        
+        # 3. get box x, y, w, h
+        boxes_thresh = pred_bboxes[pred_scores >=
+                            0.3].astype(np.int32)
+    
+        boxes = []
+        for i in range(len(boxes_thresh)):
+            # get a single bounding box:
+            x = boxes_thresh[i][0]
+            y = boxes_thresh[i][1]
+            width = boxes_thresh[i][2]-boxes_thresh[i][0]
+            height = boxes_thresh[i][3]-boxes_thresh[i][1]
+            
+            box = []
+            box.append(x)
+            box.append(y)
+            box.append(width)
+            box.append(height)
+            boxes.append(box)
+            
+        return class_ids, scores, boxes
+            
+
     def detect_yolov5(self, frame):
         """Given results from yolov5, extract classs ids, scores and boxes as numpy array"""
-        model = self.yolov5
-        results = model(frame)
+        yolov5 = self.yolov5
+        results = yolov5(frame)
+        
         result_pandas = results.pandas().xyxy[0]
         result_list = results.xyxy[0].cpu().detach().tolist()
         class_ids = []
-        scores = []
+        scores = [] 
         boxes = []
 
         for i in range(len(result_list)):
@@ -119,8 +188,10 @@ class DetectorTracker(object):
 
     def process_frame(self, frame, modelVersion):
         """ 1. Object Detection per frame"""
-        if(modelVersion == "v5"):
-            (class_ids, scores, boxes) = self.detect_yolov5(frame)
+        if(modelVersion == "frcnn"):
+            (class_ids, scores, boxes) = self.detect_frcnn(frame)
+        elif(modelVersion =="v5"):
+            (class_ids, scores, boxes)=self.detect_yolov5(frame)
         else:
             (class_ids, scores, boxes) = self.detect_yolo(frame)
 
@@ -165,16 +236,11 @@ class DetectorTracker(object):
                         (x, y - 10), 0, 0.75, (255, 255, 255), 2)
 
         # grab ids and scores of each bounding box
-        ids_scores = {}
         ids_scores_sizes ={}
         if(len(object_ids) > 0 and len(scores) > 0):
 
             # 1. use the length of minimum
             if(len(scores) >= len(object_ids)):
-                ids_scores = {object_ids[i]: scores[i]
-                              for i in range(len(object_ids))}
-
-
                 # get ids, scores, and sizes depending on length of object_id
                 for i in range(len(object_ids)):
                     ids_scores_sizes[object_ids[i]] = {
@@ -183,9 +249,6 @@ class DetectorTracker(object):
                     
                 
             if(len(object_ids) > len(scores)):
-                ids_scores = {object_ids[i]: scores[i]
-                              for i in range(len(scores))}
-
                 # get ids, scores, and sizes depending on length of scores
                 for i in range(len(scores)):
                     ids_scores_sizes[object_ids[i]] = {
