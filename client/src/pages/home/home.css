@@ -10,10 +10,35 @@
     margin-bottom: 0px;
 }
 
+.homeButton {
+    margin-bottom: 30px;
+    font-weight: 700;
+    padding: 10px;
+    margin-left: 16px;
+    cursor: pointer;
+    font-family: "Space Grotesk";
+    border: 1px solid white;
+    border-radius: 10px;
+    background-color: white;
+    border: 1px solid black;
+}
+
+.homeButton:hover {
+    cursor: pointer;
+    color: white;
+    background-color: black;
+}
+
 .homeSelectVersion {
     margin-bottom: 30px;
     font-family: "Open Sans";
     font-weight: 100;
+}
+
+.homeVideo {
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
 }
 
 .homeContent {

@@ -41,11 +41,13 @@ function Home() {
                 
                 
                 <div className='homeContent'>
-                    <button
+                    <div className='homeVideo'>
+                        <button className='homeButton'
                     onClick={handleToggleWebcam}>
                     {isWebcam?
-                        "track mp4 video" : "track webcam"}</button>
+                        "Use mp4 Video" : "Use Webcam"}</button>
                     <Video version={version} isWebcam={isWebcam}/>
+                    </div>
                     <Chart
                     isClearChart={isClearChart}
                     handleClearChart={handleClearChart} />
