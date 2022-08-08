@@ -21,8 +21,8 @@ class DetectorTracker(object):
                 weight = "yolov7-tiny.weights"
                 cfg = "yolov7-tiny.cfg"
             else:
-                weight = "yolov4.weights"
-                cfg = "yolov4.cfg"
+                weight = "yolov4-tiny.weights"
+                cfg = "yolov4-tiny.cfg"
 
             weight_file = os.path.abspath("model/weights_configs/" + weight)
             cfg_file = os.path.abspath("model/weights_configs/" + cfg)

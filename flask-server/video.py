@@ -6,7 +6,7 @@ class Video(object):
         if(isWebcam):
             self.video=cv2.VideoCapture(0)
         else:
-            self.video = cv2.VideoCapture("traffic.mp4")
+            self.video = cv2.VideoCapture("videos/bangkok.mp4")
         self.fps=self.video.get(cv2.CAP_PROP_FPS)
 
     def __del__(self):
@@ -47,4 +47,4 @@ class Video(object):
         
         # convert result to byte
         ret, jpg = cv2.imencode(".jpg", frame)
-        return ids_scores_sizes, jpg.tobytes()
+        return ids_scores_sizes, fps, jpg.tobytes()

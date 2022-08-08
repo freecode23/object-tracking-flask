@@ -6,6 +6,9 @@ from datetime import datetime
 import sqlite3
 import time
 import numpy
+import csv
+import pandas as pd
+
 
 app = Flask(__name__)
 conn = sqlite3.connect("stdev.db")
@@ -14,7 +17,8 @@ sql_create_query = """ CREATE TABLE if not exists stdev (
     second string PRIMARY KEY,
     version string NOT NULL,
     confidence_stdev integer NOT NULL,
-    size_stdev integer NOT NULL
+    size_stdev integer NOT NULL,
+    fps integer NOT NULL
 )
 """
 sql_drop_query = """drop table if exists stdev"""
@@ -26,7 +30,8 @@ cursor.execute(sql_create_query)
 def db_connection():
     conn=None
     try:
-        conn=sqlite3.connect("stdev.db")
+        conn = sqlite3.connect(
+            "stdev.db", isolation_level=None, detect_types=sqlite3.PARSE_COLNAMES)
     except sqlite3.error as e:
         print(e)
     return conn
@@ -103,15 +108,17 @@ def generate_frames(camera, version="v4"):
     yoloDeepSort = DetectorTracker(version)
 
     ids_scores_all_frames = {}
+    fpss=[]
     start = time.time()
     while True:
         # 1. get first frame
-        ids_scores_sizes, curr_frame = camera.get_tracked_frame(
+        ids_scores_sizes, fps, curr_frame = camera.get_tracked_frame(
             yoloDeepSort, version)
 
-        # 2. push scores
+        # 2. push scores and fpss
         ids_scores_all_frames = append_scores(
             ids_scores_all_frames, ids_scores_sizes)
+        fpss.append(fps)
 
         # 3. return the frame
         yield(b'--frame\r\n'
@@ -123,13 +130,12 @@ def generate_frames(camera, version="v4"):
         # 4. get std if its been 3 seconds
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            # 5. get the stdev
+            # 5. get mean stdev and mean fps
             mean_conf_stds, mean_size_stds = get_mean_stds(ids_scores_all_frames)
             mean_conf_stds, mean_size_stds = round(
                 mean_conf_stds * 100, 3), round(mean_size_stds, 3)
-            print("mean conf stds>>>", mean_conf_stds)
-            print("mean size stds>>>", mean_size_stds)
-            
+
+            mean_fps = sum(fpss) / len(fpss)
             # 6. if its a valid stdevs, insert into db
             if(mean_conf_stds > 0 or mean_size_stds > 0):
                 # 7. prep the dates
@@ -138,16 +144,27 @@ def generate_frames(camera, version="v4"):
                 
                 # 8. insert into db
                 conn = db_connection()
+
                 cursor = conn.cursor()
                 sql_query = """INSERT INTO stdev 
-                            (second, version, confidence_stdev, size_stdev)
-                            VALUES (?, ?, ?, ?)"""
+                            (second, version, confidence_stdev, size_stdev, fps)
+                            VALUES (?, ?, ?, ?, ?)"""
                 cursor = cursor.execute(
-                    sql_query, (now_string, version, mean_conf_stds, mean_size_stds))
+                    sql_query, (now_string, version, mean_conf_stds, mean_size_stds, mean_fps))
                 conn.commit()
+                
+                # 9. download as csv
+                db_df = pd.read_sql_query("SELECT * FROM stdev", conn)
+                db_df.to_csv('csv/database.csv', index=False)
+
                 
             # 9. restart timer from 0s
             start = time.time()
+            
+  
+
+
+conn.close()
             
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():

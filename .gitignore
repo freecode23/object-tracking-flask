@@ -2,21 +2,23 @@
 
 # folders adn apple files
 videos/
-mnist/
-lib/
 images/
+lib/
 results/
+dnn_model/
 csv/
 data/
 node_modules/
+videos/
 *.egg-info/
 *.tsbuildinfo
 *.zip
-.DS_Store  
-.ipynb_checkpoints
 *.weights
 *.cfg
-dnn_model/
+.DS_Store  
+.ipynb_checkpoints
+
+
 .pem
 objectDetectSSH.pem
 *.mp4

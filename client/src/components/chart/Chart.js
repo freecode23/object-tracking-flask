@@ -55,7 +55,7 @@ function Chart(props) {
     labels,
     datasets: [
       {
-        label: 'Confidence Standard Deviation(%)',
+        label: 'Confidence Standard Deviation(%) every 3 seconds interval',
         data: confStdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
         segment: {
@@ -69,7 +69,7 @@ function Chart(props) {
     labels,
     datasets: [
       {
-        label: 'Size Standard Deviation (pixel)',
+        label: 'Size Standard Deviation (pixel) every 3 seconds interval',
         data: sizeStdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
         segment: {
