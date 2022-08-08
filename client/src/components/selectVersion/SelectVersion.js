@@ -5,7 +5,7 @@ function SelectVersion(props) {
 
     return(
         <div >
-        <p className='selectVersionLabel'>Click on version to display chart:</p>
+        <p className='selectVersionLabel'>Click on model to start session:</p>
                 <button
                     className='versionButton frcnn'
                     type="submit"

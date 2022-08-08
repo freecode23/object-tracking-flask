@@ -94,7 +94,6 @@ def get_mean_stds(ids_scores_sizes_all):
                 size_std = numpy.std(size_arr, axis=0)
                 size_stds.append(size_std)
                 
-
     if(conf_stds):
         mean_conf_stds = (sum(conf_stds) / len(conf_stds))
         mean_size_stds = (sum(size_stds) / len(size_stds))
@@ -104,7 +103,6 @@ def get_mean_stds(ids_scores_sizes_all):
         return -1, -1
 
 def generate_frames(camera, version="v4"):
-    print("GENERATE FRAMES >>>>>>>>>>>>>>")
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
     yoloDeepSort = DetectorTracker(version)
 
@@ -127,7 +125,6 @@ def generate_frames(camera, version="v4"):
         yield(b'--frame\r\n'
                     b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
                     b'\r\n\r\n')
-
         end = time.time()
         
         # 4. get std if its been 3 seconds
@@ -169,33 +166,43 @@ def generate_frames(camera, version="v4"):
             # reset
             fpss = []
             num_objects = []
-            
-  
 
 
-conn.close()
+def generate_untracked_frames(camera):
+    while True:
+        curr_frame =camera.get_frame()
+
+        yield(b'--frame\r\n'
+              b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
+              b'\r\n\r\n')
+    
             
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():
-
-
+   
     # GET
     if request.method == 'GET':
-        version = request.args.get("version")
+        # 1. check if using webcam
         isWebcamStr = request.args.get("isWebcam")
-        isWebcam=True
+        isWebcam = True
+        if(isWebcamStr == "false"):
+                isWebcam = False
 
-        if(isWebcamStr =="false"):
-            isWebcam = False
+        # 2. check if detecting
+        isDetecting = request.args.get("isDetecting")
+        if(isDetecting == "true"):
             
-        # 1. single yield
-        gen = generate_frames(Video(isWebcam), version)
-        
-        # 2. wrap frame as response object        
+            version = request.args.get("version")
+            gen = generate_frames(Video(isWebcam), version)
+        else:
+            gen = generate_untracked_frames(Video(isWebcam))
+                
+        # 3. wrap frame as response object
         # multipart/x-mixed-replace is a single HTTP request response model.
         # If the network is interrupted, the video stream will be terminated abnormally and must be reconnected
         frame_res = Response(gen,
-                       mimetype='multipart/x-mixed-replace; boundary=frame')
+                            mimetype='multipart/x-mixed-replace; boundary=frame')
+
         return frame_res
 
 

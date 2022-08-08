@@ -98,7 +98,6 @@ function Chart(props) {
     // X axis - time
     setLabels(fetchedConf.data.seconds)
 
-  
     // Y axis -confStdev
     setConf(fetchedConf.data.conf_stdev)
     setSize(fetchedConf.data.size_stdev)
@@ -116,7 +115,7 @@ function Chart(props) {
         <button
             className='chartClearButton'
             onClick={props.handleClearChart}>
-              Clear Chart
+              Reset Session
         </button>
 
         <div>
