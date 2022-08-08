@@ -1,8 +1,12 @@
 import cv2
 import time
 class Video(object):
-    def __init__(self):
-        self.video=cv2.VideoCapture(0)
+    def __init__(self, isWebcam):
+        print("INIT >>>>>>>>>>> ,<<<<<VIDEOOO::::",isWebcam)
+        if(isWebcam):
+            self.video=cv2.VideoCapture(0)
+        else:
+            self.video = cv2.VideoCapture("traffic.mp4")
         self.fps=self.video.get(cv2.CAP_PROP_FPS)
 
     def __del__(self):

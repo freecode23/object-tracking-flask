@@ -7,6 +7,7 @@ function Home() {
 
     const [version, setVersion] = useState("v4")
     const [isClearChart, setClearChart] = useState(false)
+    const [isWebcam, setIsWebCam] = useState(true)
 
     const handleSelectVersion = async (e) => {
         e.preventDefault();
@@ -17,6 +18,12 @@ function Home() {
     const handleClearChart = async (e) => {
         e.preventDefault();
         setClearChart(true)
+    }
+
+    const handleToggleWebcam = async (e) => {
+        e.preventDefault();
+        setIsWebCam(!isWebcam)
+        console.log("isWebcam", isWebcam)
     }
 
 
@@ -34,7 +41,11 @@ function Home() {
                 
                 
                 <div className='homeContent'>
-                    <Video version={version} />
+                    <button
+                    onClick={handleToggleWebcam}>
+                    {isWebcam?
+                        "track mp4 video" : "track webcam"}</button>
+                    <Video version={version} isWebcam={isWebcam}/>
                     <Chart
                     isClearChart={isClearChart}
                     handleClearChart={handleClearChart} />
