@@ -48,6 +48,21 @@ class DetectorTracker(object):
         self.classes = []
         self.colors = np.random.uniform(0, 255, size=(80, 3))
         self.load_class_names("model/weights_configs/classes.txt")
+        
+        # 0 classes for frcnn
+        self.classes_frcnn = [
+            '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+            'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
+            'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+            'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+            'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+            'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
+            'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+            'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+            'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
+            'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+            'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
+            'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
 
         # 3. Load Tracker (DeepSORT)
         self.deep = Deep(max_distance=0.7,
@@ -109,20 +124,20 @@ class DetectorTracker(object):
 
         # get all the predicted bounding boxes
         pred_bboxes = outputs[0]['boxes'].detach().cpu().numpy()
-
+        threshold = 0.4
         # 1. get class ids
         class_ids=[]
         for i in range(len(pred_scores)):
-            if(pred_scores[i] >= 0.3):
+            if(pred_scores[i] >= threshold):
                 class_ids.append(pred_class_ids[i])
         
         # 2. get scores
         scores = pred_scores[pred_scores >=
-                            0.3]
+                             threshold]
         
         # 3. get box x, y, w, h
         boxes_thresh = pred_bboxes[pred_scores >=
-                            0.3].astype(np.int32)
+                                   threshold].astype(np.int32)
     
         boxes = []
         for i in range(len(boxes_thresh)):
@@ -138,7 +153,14 @@ class DetectorTracker(object):
             box.append(width)
             box.append(height)
             boxes.append(box)
-            
+        
+        # Delete invalid
+        invalid_index = {i for i in range(
+            len(class_ids)) if class_ids[i] >= len(self.classes_frcnn)}
+        boxes = [v for i, v in enumerate(boxes) if i not in invalid_index]
+        scores = [v for i, v in enumerate(scores) if i not in invalid_index]
+        class_ids = [v for i, v in enumerate(class_ids) if i not in invalid_index]
+
         return class_ids, scores, boxes
             
 
@@ -195,38 +217,27 @@ class DetectorTracker(object):
         else:
             (class_ids, scores, boxes) = self.detect_yolo(frame)
 
-        class_names = []
-        for class_id in class_ids:
-            class_name = self.classes[class_id]
-            class_names.append(class_name)
 
         """ 2. Object Tracking """
         features = self.get_features(frame, boxes)
-
         detections = self.create_detections_object(
             boxes, scores, class_ids, features)
-
         self.kalman_predict()
         (class_ids, object_ids, boxes) = self.update_features(detections)
-        class_names = []
-        for class_id in class_ids:
-            class_name = self.classes[class_id]
-            class_names.append(class_name)
-
         
-        # get bounding box size in eaxh box
+        # 1. get bounding box size in eaxh box
         box_sizes=[]
         for box in boxes:
             box_size= box[2] * box[3]
             box_sizes.append(box_size)
             
-        # print("\nclass_names: ", class_names)
-        # print("box_sizes:", box_sizes)
-        # print("scores:", scores)
-            
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
             (x, y, x2, y2) = box
-            class_name = self.classes[class_id]
+            
+            if(modelVersion == "frcnn"):
+                class_name = self.classes_frcnn[class_id]
+            else:
+                class_name = self.classes[class_id]
             color = self.colors[class_id]
 
             cv2.rectangle(frame, (x, y), (x2, y2), color, 2)
@@ -235,11 +246,11 @@ class DetectorTracker(object):
             cv2.putText(frame, class_name + " " + str(object_id),
                         (x, y - 10), 0, 0.75, (255, 255, 255), 2)
 
-        # grab ids and scores of each bounding box
+        # 2. grab ids, scores, and sizes of each bounding box
         ids_scores_sizes ={}
         if(len(object_ids) > 0 and len(scores) > 0):
 
-            # 1. use the length of minimum
+            # 3. use the length of minimum
             if(len(scores) >= len(object_ids)):
                 # get ids, scores, and sizes depending on length of object_id
                 for i in range(len(object_ids)):

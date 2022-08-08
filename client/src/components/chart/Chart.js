@@ -39,7 +39,9 @@ function Chart(props) {
   
   const getColorAtx = (ctx) => {
     const rowIdx = ctx.p0.parsed.x
-    if (versions[rowIdx] === "v4") {
+    if (versions[rowIdx] === "frcnn") {
+      return 'rgb(128, 0, 128)'
+    } else if (versions[rowIdx] === "v4") {
       return 'rgb(250, 0, 0)'
     } else if (versions[rowIdx] === "v5") {
       return 'rgb(0, 255, 0)'

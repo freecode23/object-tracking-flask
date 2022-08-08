@@ -7,6 +7,13 @@ function SelectVersion(props) {
         <div >
         <p className='selectVersionLabel'>Click on version to display chart:</p>
                 <button
+                    className='versionButton frcnn'
+                    type="submit"
+                    value="frcnn"
+                    onClick={props.handleSelectVersion}>
+                    FRCNN
+                </button>
+                <button
                     className='versionButton v4'
                     type="submit"
                     value="v4"

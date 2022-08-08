@@ -168,16 +168,7 @@ conn.close()
             
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():
-    # POST
-    # if request.method == 'POST':
-    #     print("post request", request)
-    #     if request.form.get('action1') == 'v4':
-    #         version="v4"
-    #     elif(request.form.get('action2') == 'v5'):
-    #         version = "v5"
-    #     else:
-    #         version="v7"
-    #     return version
+
 
     # GET
     if request.method == 'GET':
