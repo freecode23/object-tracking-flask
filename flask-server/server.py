@@ -1,7 +1,6 @@
-
 from flask import Flask, Response, jsonify, make_response, request
 from model.detector_tracker import DetectorTracker
-from camera import Video
+from video import Video
 from datetime import datetime
 
 import sqlite3
@@ -37,13 +36,6 @@ def append_scores(ids_scores_sizes_all, ids_scores_sizes):
     '''Look for the id of the box in ids_scores all. If it doesnt exists
     create a new key and add the scores. If it exist, just append the single value. 
     Return the new dict with scores appended'''
-    # if(ids_scores):
-    #     for id, score in ids_scores.items():
-    #         # if id already exist, just append
-    #         if(id in ids_scores_all):
-    #             ids_scores_all[id].append(score)
-    #         else:
-    #             ids_scores_all[id] = [score]
                 
     if(ids_scores_sizes):
         for id, scores_sizes in ids_scores_sizes.items():
