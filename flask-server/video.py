@@ -26,18 +26,17 @@ class Video(object):
             print("no frame captured")
             return
         
-        # 2. start time
-        start = time.time()
         
-        # 3. process frame
+        # 2. process frame
+        # get acc scores and sizes
+        start = time.time()
         ids_scores_sizes, frame = yoloDeepSort.process_frame(
             frame, version)
         
-        # 4. time elapsed
         end = time.time()
         seconds = end-start
 
-        # 5. fps
+        # 3.  get fps
         num_frames = 1
         fps = num_frames / seconds
         

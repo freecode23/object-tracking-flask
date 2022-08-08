@@ -18,7 +18,8 @@ sql_create_query = """ CREATE TABLE if not exists stdev (
     version string NOT NULL,
     confidence_stdev integer NOT NULL,
     size_stdev integer NOT NULL,
-    fps integer NOT NULL
+    fps integer NOT NULL,
+    num_objects integer NOT NULL
 )
 """
 sql_drop_query = """drop table if exists stdev"""
@@ -103,12 +104,13 @@ def get_mean_stds(ids_scores_sizes_all):
         return -1, -1
 
 def generate_frames(camera, version="v4"):
+    print("GENERATE FRAMES >>>>>>>>>>>>>>")
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
-    print('tracker_version' , version)
     yoloDeepSort = DetectorTracker(version)
 
     ids_scores_all_frames = {}
     fpss=[]
+    num_objects=[]
     start = time.time()
     while True:
         # 1. get first frame
@@ -119,6 +121,7 @@ def generate_frames(camera, version="v4"):
         ids_scores_all_frames = append_scores(
             ids_scores_all_frames, ids_scores_sizes)
         fpss.append(fps)
+        num_objects.append(len(ids_scores_sizes))
 
         # 3. return the frame
         yield(b'--frame\r\n'
@@ -130,12 +133,14 @@ def generate_frames(camera, version="v4"):
         # 4. get std if its been 3 seconds
         if(end-start > 3):
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            # 5. get mean stdev and mean fps
+            # 5. get mean stdev and mean fps and mean num objects
             mean_conf_stds, mean_size_stds = get_mean_stds(ids_scores_all_frames)
             mean_conf_stds, mean_size_stds = round(
                 mean_conf_stds * 100, 3), round(mean_size_stds, 3)
 
-            mean_fps = sum(fpss) / len(fpss)
+            mean_fps = round(sum(fpss) / len(fpss), 3)
+            mean_num_objects = round(sum(num_objects) / len(num_objects), 3)
+            
             # 6. if its a valid stdevs, insert into db
             if(mean_conf_stds > 0 or mean_size_stds > 0):
                 # 7. prep the dates
@@ -147,19 +152,23 @@ def generate_frames(camera, version="v4"):
 
                 cursor = conn.cursor()
                 sql_query = """INSERT INTO stdev 
-                            (second, version, confidence_stdev, size_stdev, fps)
-                            VALUES (?, ?, ?, ?, ?)"""
+                            (second, version, confidence_stdev, size_stdev, fps, num_objects)
+                            VALUES (?, ?, ?, ?, ?, ?)"""
                 cursor = cursor.execute(
-                    sql_query, (now_string, version, mean_conf_stds, mean_size_stds, mean_fps))
+                    sql_query, (now_string, version, mean_conf_stds, mean_size_stds, mean_fps, mean_num_objects))
                 conn.commit()
                 
                 # 9. download as csv
                 db_df = pd.read_sql_query("SELECT * FROM stdev", conn)
                 db_df.to_csv('csv/database.csv', index=False)
 
-                
+
             # 9. restart timer from 0s
             start = time.time()
+            
+            # reset
+            fpss = []
+            num_objects = []
             
   
 
