@@ -32,13 +32,10 @@ class DetectorTracker(object):
             self.yolo = DarknetModel(
                 weight_file, cfg_file)
 
-            self.yolo.load_detection_model(image_size=320,  # 416 - 1280
+            self.yolo.load_detection_model(image_size=416,  # 416 - 1280
                                            nmsThreshold=0.4,
                                            confThreshold=0.3)
             
-
-
-
         else:
             # need to do force_reload otherwise will give error because its running on mps (need nvidia gpu)
             self.yolov5 = torch.hub.load(
