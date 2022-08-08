@@ -48,9 +48,13 @@ function Home() {
                         "Use mp4 Video" : "Use Webcam"}</button>
                     <Video version={version} isWebcam={isWebcam}/>
                     </div>
-                    <Chart
-                    isClearChart={isClearChart}
-                    handleClearChart={handleClearChart} />
+                    
+                    <div className='homeChart'>
+                        <Chart
+                            isClearChart={isClearChart}
+                            handleClearChart={handleClearChart} />
+                    </div>
+
                 </div>
             </div>
         </>

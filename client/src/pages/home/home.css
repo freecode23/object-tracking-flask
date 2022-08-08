@@ -6,15 +6,25 @@
     font-family: "Space Grotesk";
 }
 
+.homeChart {
+    display: flex;
+}
+
 .homeTitle {
     margin-bottom: 0px;
+}
+
+.homeContent {
+    display: flex;
+    flex-direction: row;
+    /* align-items: center; */
+    justify-content: center;
 }
 
 .homeButton {
     margin-bottom: 30px;
     font-weight: 700;
     padding: 10px;
-    margin-left: 16px;
     cursor: pointer;
     font-family: "Space Grotesk";
     border: 1px solid white;
@@ -38,12 +48,5 @@
 .homeVideo {
     display: flex;
     flex-direction: column;
-    margin: 20px;
-}
-
-.homeContent {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+    margin: 0 20px;
 }

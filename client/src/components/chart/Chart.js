@@ -111,18 +111,19 @@ function Chart(props) {
   return (
     <>
       <div className='chartWrapper'>
-      <button
-          className='chartClearButton'
-          onClick={props.handleClearChart}>
-            Clear Chart
-      </button>
+        <button
+            className='chartClearButton'
+            onClick={props.handleClearChart}>
+              Clear Chart
+        </button>
 
-      <div>
-        <Line data={ConfData} />
-      </div>
-      <div>
-          <Line data={SizeData} />
-      </div>
+        <div>
+          <Line data={ConfData} />
+        </div>
+        
+        <div>
+            <Line data={SizeData} />
+        </div>
     </div>
     </>
   )
