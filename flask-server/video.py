@@ -43,7 +43,7 @@ class Video(object):
         fps = num_frames / seconds
         
         cv2.putText(frame, "FPS: " + str(round(fps)), (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0))
+                    cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 0))
         
         # convert result to byte
         ret, jpg = cv2.imencode(".jpg", frame)
