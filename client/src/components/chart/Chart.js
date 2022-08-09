@@ -136,43 +136,44 @@ function Chart(props) {
   const versionHeaderJSX = Object.keys(sessionResult).map((version) => {
     // For each version create a header
     return (
-      <th key={version} className="chartResultTableHeader">
+      <th key={version} className="chartTableHeader">
         {version}
       </th>
     )
   })
 
-  
   const confStdevJSX = Object.keys(sessionResult).map((version) => {
-    // For each version:
     // - get the mean values
-    const conf_stdev = sessionResult[version][0]
-    const fps = sessionResult[version][1]
-    const num_objects = sessionResult[version][2]
-    const size_stdev = sessionResult[version][3]
-
-    console.log("sessionResult[version]", sessionResult[version]);
-    console.log("stdev...s", conf_stdev);
+    const conf_stdev = Math.round(sessionResult[version][0] * 100) /100
     // - create a single row
     return (
-      <span key={version} className="chartResultVersion">
-        <tr>
-          <td>{conf_stdev}</td>
-        </tr>
+      <td key={version} className="chartTableData">
+        {conf_stdev}
+      </td>
+    )
+  })
 
-        <tr>
-          <td>{fps}</td>
-        </tr>
+  const fpsJSX = Object.keys(sessionResult).map((version) => {
+    return (
+      <td key={version} className="chartTableData">
+        {Math.round(sessionResult[version][1] * 100) / 100}
+      </td>
+    )
+  })
 
-        <tr>
-          <td>{num_objects}</td>
-        </tr>
+  const numObjectsJSX = Object.keys(sessionResult).map((version) => {
+    return (
+      <td key={version} className='chartTableData'>
+        {Math.round(sessionResult[version][2] * 100) / 100}
+      </td>
+    )
+  })
 
-        <tr>
-          <td>{size_stdev}</td>
-        </tr>
-
-      </span>
+  const sizeJSX = Object.keys(sessionResult).map((version) => {
+    return (
+      <td key={version} className='chartTableData'>
+        {Math.round(sessionResult[version][3] *100)/ 100}
+      </td>
     )
   })
 
@@ -180,7 +181,7 @@ function Chart(props) {
   // 8. Return
   return (
     <>
-      <div className='chartWrapper'>
+      <div className='chart'>
         <button
             className='chartClearButton'
             onClick={props.handleClearChart}>
@@ -188,26 +189,48 @@ function Chart(props) {
         </button>
 
         {props.isClearChart &&
-          <div className='chartResultTable'>
+          <div className='chartTable'>
             <table>
+              <caption>Session Result</caption>
               <tr>
-                <th>metric</th>
+                <th className = "chartTableHeader">metric</th>
                 {versionHeaderJSX}
               </tr>
-                
-              {confStdevJSX}
               
+              <tr>
+                <td className="chartTableData">conf_stdev</td>
+                {confStdevJSX}
+              </tr>
+
+              <tr>
+                <td className="chartTableData">fps</td>
+                {fpsJSX}
+              </tr>
+
+              <tr>
+                <td className="chartTableData">#objects</td>
+                {numObjectsJSX}
+              </tr>
+
+              <tr>
+                <td className="chartTableData">size_stdev</td>
+                {sizeJSX}
+              </tr>
             </table>
           </div>
         }
      
 
-        <div>
-          <Line data={ConfData} />
-        </div>
-        
-        <div>
-            <Line data={SizeData} />
+        <div className='chartWrapper'>
+
+          <div >
+            <Line data={ConfData} />
+          </div>
+          
+          <div>
+              <Line data={SizeData} />
+          </div>
+
         </div>
     </div>
     </>

@@ -39,11 +39,11 @@ function Home() {
     return (
         <>
             <div className="homeWrapper">
-                <h1 className='homeTitle'>OBJECT TRACKING</h1>
+                <h1 className='homeTitle'>OBJECT TRACKING with Faster RCNN and YOLO</h1>
 
                 <div className='homeSelectVersion'>
                     <h3>
-                        {`Model used: ${version}`}
+                        {`model being used: ${version}`}
                     </h3>
                     <SelectVersion handleSelectVersion={handleSelectVersion} />
                 </div>

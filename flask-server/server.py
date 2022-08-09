@@ -186,7 +186,6 @@ def generate_frames(camera, version="v4"):
                 db_df = pd.read_sql_query("SELECT * FROM stdev", conn)
                 db_df.to_csv('csv/database.csv', index=False)
 
-
             # 9. restart timer from 0s
             start = time.time()
             
