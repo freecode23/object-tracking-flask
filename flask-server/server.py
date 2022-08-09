@@ -203,7 +203,6 @@ def generate_untracked_frames(camera):
     
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():
-   
     # GET
     if request.method == 'GET':
         # 1. check if using webcam
