@@ -8,7 +8,7 @@ import time
 import numpy
 import csv
 import pandas as pd
-
+import json
 
 app = Flask(__name__)
 conn = sqlite3.connect("stdev.db")
@@ -27,8 +27,8 @@ sql_drop_query = """drop table if exists stdev"""
 cursor.execute(sql_drop_query)
 cursor.execute(sql_create_query)
 
-
 def db_connection():
+    """create sqlite db connection"""
     conn=None
     try:
         conn = sqlite3.connect(
@@ -36,7 +36,6 @@ def db_connection():
     except sqlite3.error as e:
         print(e)
     return conn
-
 
 def append_scores(ids_scores_sizes_all, ids_scores_sizes):
     '''Look for the id of the box in ids_scores all. If it doesnt exists
@@ -58,7 +57,6 @@ def append_scores(ids_scores_sizes_all, ids_scores_sizes):
                 
     return ids_scores_sizes_all
 
-
 def get_error_list(scores):
     '''Given a list of scores, create a list of error between a frame and the previous'''
     errors = []
@@ -68,7 +66,6 @@ def get_error_list(scores):
             errors.append(error)
 
     return errors
-
 
 def get_mean_stds(ids_scores_sizes_all):
     '''For each box id, get error of scores and of sizes between 2 frames and add to a list.
@@ -101,6 +98,36 @@ def get_mean_stds(ids_scores_sizes_all):
     
     else:
         return -1, -1
+
+def get_mean_result():
+    # 1. connect to db
+    conn = db_connection()
+    cursor = conn.cursor()
+    cursor = conn.execute("SELECT * FROM stdev")
+    stdev={}
+    stdev["conf_stdev"] = []
+    stdev["size_stdev"] = []
+    stdev["versions"] = []
+    stdev["fps"]=[]
+    stdev["num_objects"] = []
+    
+    # 2. grab standard dev rows
+    # for each col
+    for col in cursor.fetchall():
+        stdev["versions"].append(col[1])
+        stdev["conf_stdev"].append(col[2])
+        stdev["size_stdev"].append(col[3])
+        stdev["fps"].append(col[4])
+        stdev["num_objects"].append(col[5])
+        
+    # 3. get mean by version
+    df=pd.DataFrame(stdev)
+    df_mean = df.groupby("versions").mean()
+    result = df_mean.to_json(orient="index")
+    parsed = json.loads(result)
+    print("parsed>>>>", parsed)
+    return parsed
+
 
 def generate_frames(camera, version="v4"):
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
@@ -136,7 +163,7 @@ def generate_frames(camera, version="v4"):
                 mean_conf_stds * 100, 3), round(mean_size_stds, 3)
 
             mean_fps = round(sum(fpss) / len(fpss), 3)
-            mean_num_objects = round(sum(num_objects) / len(num_objects), 3)
+            mean_num_objects = round((sum(num_objects) / len(num_objects)), 3)
             
             # 6. if its a valid stdevs, insert into db
             if(mean_conf_stds > 0 or mean_size_stds > 0):
@@ -167,7 +194,6 @@ def generate_frames(camera, version="v4"):
             fpss = []
             num_objects = []
 
-
 def generate_untracked_frames(camera):
     while True:
         curr_frame =camera.get_frame()
@@ -176,7 +202,6 @@ def generate_untracked_frames(camera):
               b'Content-Type:  image/jpeg\r\n\r\n' + curr_frame +
               b'\r\n\r\n')
     
-            
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():
    
@@ -205,10 +230,8 @@ def video_feed():
 
         return frame_res
 
-
 @app.route("/stdev/<isResetTable>", methods=['GET'])
 def stdev(isResetTable):
-
     if request.method == 'GET':
         # 1. connect to db
         conn = db_connection()
@@ -225,7 +248,7 @@ def stdev(isResetTable):
             stdev["size_stdev"] = []
             stdev["versions"] = []
             
-            # 2. grab standard dev
+            # 2. grab standard dev rows
             # for each col
             for col in cursor.fetchall():
                 stdev["seconds"].append(col[0])
@@ -235,6 +258,12 @@ def stdev(isResetTable):
             
         if stdev is not None:
             return jsonify(stdev)
+
+
+@app.route("/result", methods=['GET'])
+def result():
+    return get_mean_result()
+
 
 if __name__ == '__main__':
     # camera can work with HTTP only on 127.0.0.1

@@ -36,7 +36,9 @@ function Chart(props) {
   const [confStdev, setConf] = useState([]) // y axis
   const [sizeStdev, setSize] = useState([]) // y axis
   const [versions, setVersions] = useState()
+  const [sessionResult, setSessionResult] = useState({})
   
+  // 2. Get colors
   const getColorAtx = (ctx) => {
     const rowIdx = ctx.p0.parsed.x
     if (versions[rowIdx] === "frcnn") {
@@ -50,9 +52,7 @@ function Chart(props) {
     }
   }
 
-
-
-  // plot
+  // 3. Init data to plot
   const ConfData = {
     labels,
     datasets: [
@@ -81,34 +81,103 @@ function Chart(props) {
     ],
   };
 
-
+  // 4. useEffect for interval
   useEffect(()=> {
-    const myInterval = setInterval(fetchConfStdev, 3000);
-
+    const myInterval = setInterval(fetchStdev, 3000);
     return () => {
       // should clear the interval when the component unmounts
       clearInterval(myInterval);
     };
-
   })
 
-  const fetchConfStdev = async () => {
-    const fetchedConf = await axios.get(`/stdev/${props.isClearChart}`)
+  // 5. useEffect for Mean values
+  useEffect(()=> {
+    const fetchMean = async() => {
+      const res = await axios.get("/result")
+
+      // 1. create map of version and the mean values
+      const mapRes = Object.entries(res.data)
+        .map(([version, means]) => {
+          
+          // get array
+          const meanArr = Object.values(means).map((value, index) => {
+            return value
+          })              
+ 
+          return [`${version}`, meanArr]
+        })
+      
+      // 2. convert map to obejct
+      const objectRes = Object.fromEntries(mapRes)
+      setSessionResult(objectRes) 
+    }
+
+    if(props.isClearChart) {
+      fetchMean();
+    }
+  }, [props.isClearChart])
+
+  // 6. fetch 
+  const fetchStdev = async () => {
+    const fetchedStdev = await axios.get(`/stdev/${props.isClearChart}`)
 
     // X axis - time
-    setLabels(fetchedConf.data.seconds)
+    setLabels(fetchedStdev.data.seconds)
 
-    // Y axis -confStdev
-    setConf(fetchedConf.data.conf_stdev)
-    setSize(fetchedConf.data.size_stdev)
+    // Y axis - confStdev
+    setConf(fetchedStdev.data.conf_stdev)
+    setSize(fetchedStdev.data.size_stdev)
 
     // set version
-    setVersions(fetchedConf.data.versions)
-    
+    setVersions(fetchedStdev.data.versions)
   }
 
 
+  const versionHeaderJSX = Object.keys(sessionResult).map((version) => {
+    // For each version create a header
+    return (
+      <th key={version} className="chartResultTableHeader">
+        {version}
+      </th>
+    )
+  })
 
+  
+  const confStdevJSX = Object.keys(sessionResult).map((version) => {
+    // For each version:
+    // - get the mean values
+    const conf_stdev = sessionResult[version][0]
+    const fps = sessionResult[version][1]
+    const num_objects = sessionResult[version][2]
+    const size_stdev = sessionResult[version][3]
+
+    console.log("sessionResult[version]", sessionResult[version]);
+    console.log("stdev...s", conf_stdev);
+    // - create a single row
+    return (
+      <span key={version} className="chartResultVersion">
+        <tr>
+          <td>{conf_stdev}</td>
+        </tr>
+
+        <tr>
+          <td>{fps}</td>
+        </tr>
+
+        <tr>
+          <td>{num_objects}</td>
+        </tr>
+
+        <tr>
+          <td>{size_stdev}</td>
+        </tr>
+
+      </span>
+    )
+  })
+
+
+  // 8. Return
   return (
     <>
       <div className='chartWrapper'>
@@ -117,6 +186,21 @@ function Chart(props) {
             onClick={props.handleClearChart}>
               Reset Session
         </button>
+
+        {props.isClearChart &&
+          <div className='chartResultTable'>
+            <table>
+              <tr>
+                <th>metric</th>
+                {versionHeaderJSX}
+              </tr>
+                
+              {confStdevJSX}
+              
+            </table>
+          </div>
+        }
+     
 
         <div>
           <Line data={ConfData} />
