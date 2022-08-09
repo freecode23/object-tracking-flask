@@ -40,7 +40,7 @@ class Video(object):
         return jpg.tobytes()
     
     def get_tracked_frame(self, yoloDeepSort, version):
-        if(self.isWebcam):
+        if(not self.isWebcam):
             # Check length of the video.
             if self.current_count == self.video_length:
                 # Reset to the first frame. Returns bool.

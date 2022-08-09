@@ -47,6 +47,7 @@
     background-color: black;
 }
 
-.chartWrapper {
+.chartSingle {
     margin-top: 20px;
+    margin-bottom: 60px;
 }

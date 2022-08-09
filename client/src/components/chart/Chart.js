@@ -57,9 +57,10 @@ function Chart(props) {
     labels,
     datasets: [
       {
-        label: 'Confidence Standard Deviation(%) every 3 seconds interval',
+        label: ['Confidence Standard Deviation(%) every 3 seconds interval',
+        "FRCNN", "v4", "v5" , "v7"],
         data: confStdev,
-        backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
+        backgroundColor: ['rgba(20, 20, 20, 0.5)'], 
         segment: {
           borderColor: ctx => getColorAtx(ctx)
         }
@@ -71,7 +72,8 @@ function Chart(props) {
     labels,
     datasets: [
       {
-        label: 'Size Standard Deviation (pixel) every 3 seconds interval',
+        label: ['Size Standard Deviation(pixel) every 3 seconds interval',
+          "FRCNN", "v4", "v5", "v7"],
         data: sizeStdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
         segment: {
@@ -80,6 +82,43 @@ function Chart(props) {
       },
     ],
   };
+
+  const options = {
+    plugins: {
+      legend: {
+        display: true,
+        labels: {
+          generateLabels: (chart) => {
+            const legendTextArr = chart.data.datasets[0].label
+            if ((legendTextArr).length === 5) {
+              console.log("length 5");
+              const legendArr = legendTextArr.map((text, index) => {
+                let color = 'rgba(20, 20, 20, 0.5)'
+                if(index === 1){
+                  color = 'rgb(128, 0, 128)'
+                } else if (index === 2) {
+                  color = 'rgb(250, 0, 0)'
+                } else if (index === 3) {
+                  color = 'rgb(0, 255, 0)'
+                } else if (index === 4) {
+                  color = 'rgb(0, 0, 255)'
+                }
+                 return {
+                  text: text,
+                  hidden: false,
+                  fillStyle: color,
+                  strokeStyle: 'rgb(255, 255, 255)'
+                  
+                }
+              })
+              return legendArr
+            }
+
+          }
+        } 
+      }
+    }
+  }
 
   // 4. useEffect for interval
   useEffect(()=> {
@@ -220,15 +259,14 @@ function Chart(props) {
           </div>
         }
      
-
         <div className='chartWrapper'>
 
-          <div >
-            <Line data={ConfData} />
+          <div className='chartSingle'>
+            <Line data={ConfData} options={options} />
           </div>
           
-          <div>
-              <Line data={SizeData} />
+          <div className='chartSingle'>
+            <Line data={SizeData} options={options} />
           </div>
 
         </div>
