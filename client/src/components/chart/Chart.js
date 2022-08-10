@@ -72,7 +72,7 @@ function Chart(props) {
     labels,
     datasets: [
       {
-        label: ['Size Standard Deviation(pixel) every 3 seconds interval',
+        label: ['Normalized Size Standard Deviation every 3 seconds interval',
           "FRCNN", "v4", "v5", "v7"],
         data: sizeStdev,
         backgroundColor: 'rgba(20, 20, 20, 0.5)', // dot
@@ -171,7 +171,6 @@ function Chart(props) {
     setVersions(fetchedStdev.data.versions)
   }
 
-
   const versionHeaderJSX = Object.keys(sessionResult).map((version) => {
     // For each version create a header
     return (
@@ -211,7 +210,7 @@ function Chart(props) {
   const sizeJSX = Object.keys(sessionResult).map((version) => {
     return (
       <td key={version} className='chartTableData'>
-        {Math.round(sessionResult[version][3] *100)/ 100}
+        {Math.round(sessionResult[version][3] *1000)/ 1000}
       </td>
     )
   })
@@ -260,11 +259,9 @@ function Chart(props) {
         }
      
         <div className='chartWrapper'>
-
           <div className='chartSingle'>
             <Line data={ConfData} options={options} />
           </div>
-          
           <div className='chartSingle'>
             <Line data={SizeData} options={options} />
           </div>

@@ -9,6 +9,7 @@ import numpy
 import csv
 import pandas as pd
 import json
+import os
 
 app = Flask(__name__)
 conn = sqlite3.connect("stdev.db")
@@ -78,18 +79,24 @@ def get_mean_stds(ids_scores_sizes_all):
             sizes = scores_sizes["sizes"]
             
             # loop through the scores and get error by id
-            score_errors = get_error_list(scores)
-            size_errors = get_error_list(sizes)
+            # score_errors = get_error_list(scores)
+            # size_errors = get_error_list(sizes)
 
             # if there is error element, get standard deviation
-            if(score_errors):
-                conf_arr = numpy.array(score_errors)
-                conf_std = numpy.std(conf_arr, axis=0)
-                conf_stds.append(conf_std)
+            # if(score_errors):
+            #     conf_arr = numpy.array(score_errors)
+            #     conf_std = numpy.std(conf_arr, axis=0)
+            #     conf_stds.append(conf_std)
                 
-                size_arr = numpy.array(size_errors)
-                size_std = numpy.std(size_arr, axis=0)
-                size_stds.append(size_std)
+            #     size_arr = numpy.array(size_errors)
+            #     size_std = numpy.std(size_arr, axis=0)
+            #     size_stds.append(size_std)
+            
+            conf_std = numpy.std(scores, axis=0)
+            conf_stds.append(conf_std)
+            size_std = numpy.std(sizes, axis=0)
+            size_stds.append(size_std)
+            
                 
     if(conf_stds):
         mean_conf_stds = (sum(conf_stds) / len(conf_stds))
@@ -125,11 +132,39 @@ def get_mean_result():
     df_mean = df.groupby("versions").mean()
     result = df_mean.to_json(orient="index")
     parsed = json.loads(result)
-    print("parsed>>>>", parsed)
     return parsed
 
 
-def generate_frames(camera, version="v4"):
+def get_next_file_index():
+    # get current working dir
+    path = os.getcwd()
+    # print("path", path)
+    max=0
+    for file_name in os.listdir(path+"/csv"):
+        if file_name.endswith("csv"):
+            size = len(file_name)
+            last_num = int(file_name[:size - 4][-1])
+            if(int(last_num) > max):
+                max = last_num
+    print("max", max)
+    return max + 1
+        
+    
+def get_last_file_index():
+    # get current working dir
+    path = os.getcwd()
+    # print("path", path)
+    max = 0
+    for file_name in os.listdir(path+"/csv"):
+        if file_name.endswith("csv"):
+            size = len(file_name)
+            last_num = int(file_name[:size - 4][-1])
+            if(int(last_num) > max):
+                max = last_num
+    return max
+
+
+def generate_frames(camera, version, file_id):
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
     yoloDeepSort = DetectorTracker(version)
 
@@ -156,11 +191,12 @@ def generate_frames(camera, version="v4"):
         
         # 4. get std if its been 3 seconds
         if(end-start > 3):
+            
             print("\nSTDEV AFTER 3 SECS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             # 5. get mean stdev and mean fps and mean num objects
             mean_conf_stds, mean_size_stds = get_mean_stds(ids_scores_all_frames)
             mean_conf_stds, mean_size_stds = round(
-                mean_conf_stds * 100, 3), round(mean_size_stds, 3)
+                mean_conf_stds * 100, 3), round(mean_size_stds, 5)
 
             mean_fps = round(sum(fpss) / len(fpss), 3)
             mean_num_objects = round((sum(num_objects) / len(num_objects)), 3)
@@ -184,7 +220,7 @@ def generate_frames(camera, version="v4"):
                 
                 # 9. download as csv
                 db_df = pd.read_sql_query("SELECT * FROM stdev", conn)
-                db_df.to_csv('csv/database.csv', index=False)
+                db_df.to_csv('csv/ses' +  str(file_id) +'.csv', index=False)
 
             # 9. restart timer from 0s
             start = time.time()
@@ -203,6 +239,7 @@ def generate_untracked_frames(camera):
     
 @app.route('/video_feed/query/', methods=['GET'])
 def video_feed():
+    """Will be called everytime a model is clicked"""
     # GET
     if request.method == 'GET':
         # 1. check if using webcam
@@ -213,10 +250,18 @@ def video_feed():
 
         # 2. check if detecting
         isDetecting = request.args.get("isDetecting")
-        if(isDetecting == "true"):
+        if(isDetecting == "true"): 
             
+            # Qdo this if new session
+            isNewSesssionStr = request.args.get("isNewSession")
+            print("isNewSessionStr", isNewSesssionStr)
+            
+            if(isNewSesssionStr== "true"):
+                file_id = get_next_file_index()
+            else:
+                file_id = get_last_file_index()
             version = request.args.get("version")
-            gen = generate_frames(Video(isWebcam), version)
+            gen = generate_frames(Video(isWebcam), version, file_id)
         else:
             gen = generate_untracked_frames(Video(isWebcam))
                 

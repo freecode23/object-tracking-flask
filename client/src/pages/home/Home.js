@@ -7,11 +7,19 @@ function Home() {
 
     const [version, setVersion] = useState("none")
     const [isDetecting, setDetection] = useState(false)
+    const [isNewSession, setIsNewSession] = useState(false)
     const [isClearChart, setClearChart] = useState(false)
     const [isWebcam, setIsWebCam] = useState(true)
 
     const handleSelectVersion = async (e) => {
         e.preventDefault();
+
+        // if its a new session
+        if(!isDetecting){
+            setIsNewSession(true)
+        } else {
+            setIsNewSession(false)
+        }
         setVersion(e.target.value)
         setDetection(true)
         setClearChart(false)
@@ -55,7 +63,7 @@ function Home() {
                     onClick={handleToggleWebcam}>
                     {isWebcam?
                         "Use mp4 Video" : "Use Webcam"}</button>
-                    <Video version={version} isWebcam={isWebcam} isDetecting={isDetecting}/>
+                    <Video version={version} isWebcam={isWebcam} isDetecting={isDetecting} isNewSession={isNewSession}/>
                     </div>
                     
                     <div className='homeChart'>

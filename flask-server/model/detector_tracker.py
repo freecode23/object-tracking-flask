@@ -98,6 +98,7 @@ class DetectorTracker(object):
 
             
         """
+    
     def detect_frcnn(self, frame):
         #FRCNN
         # transform the image to tensor
@@ -160,7 +161,6 @@ class DetectorTracker(object):
 
         return class_ids, scores, boxes
             
-
     def detect_yolov5(self, frame):
         """Given results from yolov5, extract classs ids, scores and boxes as numpy array"""
         yolov5 = self.yolov5
@@ -216,6 +216,7 @@ class DetectorTracker(object):
 
 
         """ 2. Object Tracking """
+        
         features = self.get_features(frame, boxes)
         detections = self.create_detections_object(
             boxes, scores, class_ids, features)
@@ -223,9 +224,10 @@ class DetectorTracker(object):
         (class_ids, object_ids, boxes) = self.update_features(detections)
         
         # 1. get bounding box size in eaxh box
+        frame_size = frame.shape[0] * frame.shape[1]
         box_sizes=[]
         for box in boxes:
-            box_size= box[2] * box[3]
+            box_size = (box[2] * box[3]) / frame_size
             box_sizes.append(box_size)
             
         for class_id, object_id, box in zip(class_ids, object_ids, boxes):
