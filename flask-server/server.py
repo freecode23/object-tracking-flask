@@ -140,24 +140,19 @@ def get_next_file_index():
     max=0
     for file_name in os.listdir(path+"/csv"):
         if file_name.endswith("csv"):
-            print("\nfile_name:", file_name)
             filename_size = len(file_name)
-
             number_of_digits = filename_size - 7
-            print("number_of_digits:", number_of_digits)
             
             filename_without_csv = file_name[:filename_size - 4]
             last_num = filename_without_csv[-number_of_digits:]
-            print("last_num>>>>>",last_num)
+            # print("last_num>>>>>",last_num)
             
-            if(last_num.isnumeric):
-                print("is numeric")
+            if(last_num.isnumeric()):
                 last_num = int(last_num)
-            else:
-                break
-            if(last_num > max):
-                max = last_num
-    print("max", max)
+
+                if(last_num > max):
+                    max = last_num
+    print("max", max + 1)
     return max + 1
         
 def get_last_file_index():
@@ -167,10 +162,17 @@ def get_last_file_index():
     max = 0
     for file_name in os.listdir(path+"/csv"):
         if file_name.endswith("csv"):
-            size = len(file_name)
-            last_num = int(file_name[:size - 4][-1])
-            if(int(last_num) > max):
-                max = last_num
+            filename_size = len(file_name)
+            number_of_digits = filename_size - 7
+            filename_without_csv = file_name[:filename_size - 4]
+            last_num = filename_without_csv[-number_of_digits:]
+            
+            if(last_num.isnumeric()):
+                last_num = int(last_num)
+
+                if(last_num > max):
+                    max = last_num
+    print("max", max + 1)
     return max
 
 def generate_frames(camera, version, file_id):
