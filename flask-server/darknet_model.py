@@ -15,7 +15,7 @@ class DarknetModel(object):
         self.model = cv2.dnn_DetectionModel(net)
 
         # self.classes = []
-        self.colors = np.random.uniform(0, 255, size=(80, 3))
+        self.colors = np.random.uniform(0, 255, size=(95, 3))
 
     def load_detection_model(self, image_size=None, nmsThreshold=None, confThreshold=None):
         if image_size:
