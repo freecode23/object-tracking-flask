@@ -33,5 +33,6 @@ class DarknetModel(object):
         self.model.setInputParams(size=(self.image_size, self.image_size), scale=1/255)
 
     def detect(self, frame):
+        """Takes in openCV's frame as input and output and return the class ids, scores and boxes as numpy array"""
         return self.model.detect(frame, nmsThreshold=self.nmsThreshold, confThreshold=self.confThreshold)
 

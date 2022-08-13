@@ -77,14 +77,17 @@ class DetectorTracker(object):
 
         return self.deep.encoder(frame, boxes)
 
-    def update_features(self, detections):
-        """Given a new detections, perform Kalman filter measurement update step and update the feature"""
-        return self.tracker.update(detections)
 
     def kalman_predict(self):
         """Propagate the state distribution to the current time step using a
         Kalman filter prediction step"""
         self.tracker.predict()
+        
+    def kalman_update(self, detections):
+        """Given a new detections, perform Kalman filter measurement update step and update the prediction"""
+        return self.tracker.update(detections)
+
+   
 
     def load_class_names(self, classes_path):
         with open(classes_path, "r") as file_object:
@@ -196,7 +199,7 @@ class DetectorTracker(object):
         return class_ids, scores, boxes
 
     def detect_yolo(self, frame):
-        """Detect the object in a given frame using yolov4 model and
+        """Detect the object in a given frame using yolov4 or v7 model and 
         return the class ids, scores and boxes as numpy array"""
         return self.yolo.detect(frame)
 
@@ -216,12 +219,11 @@ class DetectorTracker(object):
 
 
         """ 2. Object Tracking """
-        
         features = self.get_features(frame, boxes)
         detections = self.create_detections_object(
             boxes, scores, class_ids, features)
         self.kalman_predict()
-        (class_ids, object_ids, boxes) = self.update_features(detections)
+        (class_ids, object_ids, boxes) = self.kalman_update(detections)
         
         # 1. get bounding box size in eaxh box
         frame_size = frame.shape[0] * frame.shape[1]

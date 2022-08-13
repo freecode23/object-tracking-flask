@@ -24,7 +24,6 @@ sql_create_query = """ CREATE TABLE if not exists stdev (
 )
 """
 sql_drop_query = """drop table if exists stdev"""
-
 cursor.execute(sql_drop_query)
 cursor.execute(sql_create_query)
 
@@ -134,7 +133,6 @@ def get_mean_result():
     parsed = json.loads(result)
     return parsed
 
-
 def get_next_file_index():
     # get current working dir
     path = os.getcwd()
@@ -142,14 +140,26 @@ def get_next_file_index():
     max=0
     for file_name in os.listdir(path+"/csv"):
         if file_name.endswith("csv"):
-            size = len(file_name)
-            last_num = int(file_name[:size - 4][-1])
-            if(int(last_num) > max):
+            print("\nfile_name:", file_name)
+            filename_size = len(file_name)
+
+            number_of_digits = filename_size - 7
+            print("number_of_digits:", number_of_digits)
+            
+            filename_without_csv = file_name[:filename_size - 4]
+            last_num = filename_without_csv[-number_of_digits:]
+            print("last_num>>>>>",last_num)
+            
+            if(last_num.isnumeric):
+                print("is numeric")
+                last_num = int(last_num)
+            else:
+                break
+            if(last_num > max):
                 max = last_num
     print("max", max)
     return max + 1
         
-    
 def get_last_file_index():
     # get current working dir
     path = os.getcwd()
@@ -162,7 +172,6 @@ def get_last_file_index():
             if(int(last_num) > max):
                 max = last_num
     return max
-
 
 def generate_frames(camera, version, file_id):
     '''Generate multiple frames and run tracking on the frames as long as the program runs'''
@@ -302,11 +311,9 @@ def stdev(isResetTable):
         if stdev is not None:
             return jsonify(stdev)
 
-
 @app.route("/result", methods=['GET'])
 def result():
     return get_mean_result()
-
 
 if __name__ == '__main__':
     # camera can work with HTTP only on 127.0.0.1

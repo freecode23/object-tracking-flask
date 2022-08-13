@@ -49,7 +49,6 @@ class Tracker:
 
     def predict(self):
         """Propagate track state distributions one time step forward.
-
         This function should be called once every time step, before `update`.
         """
         for track in self.tracks:
