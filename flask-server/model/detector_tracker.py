@@ -43,7 +43,7 @@ class DetectorTracker(object):
 
         # 2. load Classes
         self.classes = []
-        self.colors = np.random.uniform(0, 255, size=(80, 3))
+        self.colors = np.random.uniform(0, 255, size=(95, 3))
         self.load_class_names("model/weights_configs/classes.txt")
         
         # 0 classes for frcnn
