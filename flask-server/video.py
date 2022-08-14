@@ -6,7 +6,7 @@ class Video(object):
         if(isWebcam):
             self.cap=cv2.VideoCapture(0)
         else:
-            self.cap = cv2.VideoCapture("videos/bangkok.mp4")
+            self.cap = cv2.VideoCapture("videos/traffic.mp4")
 
             # Get length of the video.
             self.video_length = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
